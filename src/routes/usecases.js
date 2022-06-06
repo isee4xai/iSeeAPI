@@ -1,72 +1,42 @@
 const express = require('express');
-
 const router = express.Router()
-const Usecase = require('../models/usecase');
+const usecasectrl = require('../controllers/usecase');
+const personactrl = require('../controllers/persona');
+
+//----------------------------------------------------
+// Usecase Related Endpoints
+//---------------------------------------------------
 
 // Create
-router.post('/', async (req, res) => {
-    const data = new Usecase(req.body)
+router.post('/', usecasectrl.create);
 
-    try {
-        const dataToSave = await data.save();
-        res.status(200).json(dataToSave)
-    }
-    catch (error) {
-        res.status(400).json({ message: error.message })
-    }
-})
+// Update by ID
+router.patch('/:id', usecasectrl.update);
 
-// Get one by ID
-router.get('/:id', async (req, res) => {
-    try {
-        const data = await Usecase.findById(req.params.id);
-        res.json(data)
-    }
-    catch (error) {
-        res.status(500).json({ message: error.message })
-    }
-})
+// Get one
+router.get('/:id', usecasectrl.get);
 
-//Update by ID
-router.patch('/:id', async (req, res) => {
-    try {
-        const id = req.params.id;
-        const updatedData = req.body;
-        const options = { new: true };
+// Get all
+router.get('/', usecasectrl.list);
 
-        const result = await Usecase.findByIdAndUpdate(
-            id, updatedData, options
-        )
+// Update Settings
+router.patch('/:id/settings', usecasectrl.updateSettings);
 
-        res.send(result)
-    }
-    catch (error) {
-        res.status(400).json({ message: error.message })
-    }
-})
+// Delete by ID
+router.delete('/:id', usecasectrl.delete);
 
-//Get all
-router.get('/', async (req, res) => {
-    try {
-        const data = await Usecase.find({});
-        res.json(data)
-    }
-    catch (error) {
-        res.status(500).json({ message: error.message })
-    }
-})
 
-//Delete by ID
-router.delete('/:id', async (req, res) => {
-    try {
-        const id = req.params.id;
-        const data = await Usecase.findByIdAndDelete(id)
-        res.send(`Document with ${data.name} has been deleted..`)
-    }
-    catch (error) {
-        res.status(400).json({ message: error.message })
-    }
-})
+//----------------------------------------------------
+// Persona Related Endpoints
+//---------------------------------------------------
 
+// Add Persona to Usecase
+router.post('/:id/persona', personactrl.add);
+
+// Update Persona Details
+router.patch('/:id/persona/:personaId', personactrl.updateDetails);
+
+// Delete Persona Details
+router.delete('/:id/persona/:personaId', personactrl.delete);
 
 module.exports = router;
