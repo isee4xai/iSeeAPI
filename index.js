@@ -16,6 +16,7 @@ database.once('connected', () => {
 })
 
 const usecases = require('./src/routes/usecases');
+const questionnaire = require('./src/routes/questionnaire');
 // Add other service routes here. e.g. questionaires
 // const usecases = require('./src/routes/usecases');
 
@@ -33,3 +34,4 @@ app.listen(PORT, () => {
 });
 
 app.use('/api/usecases/', usecases)
+app.use('/api/questionnaire/', questionnaire)
