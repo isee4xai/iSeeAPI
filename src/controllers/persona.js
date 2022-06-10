@@ -22,6 +22,7 @@ module.exports.updateDetails = async (req, res) => {
         console.log("personaId", personaId)
 
         let persona = usecase.personas.id(personaId);
+        console.log(persona)
         persona.details = req.body;
 
         const save = await usecase.save();

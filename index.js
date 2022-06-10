@@ -1,5 +1,6 @@
 require('dotenv').config();
 
+const cors = require('cors')
 const express = require('express');
 const mongoose = require('mongoose');
 const mongoString = process.env.DATABASE_URL;
@@ -23,6 +24,7 @@ const questionnaire = require('./src/routes/questionnaire');
 const app = express(); 
 const PORT = process.env.PORT || 3000; 
 app.use(express.json());
+app.use(cors());
 
 // For testing purposes 
 app.get("/", (req, res) => { 
