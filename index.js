@@ -1,5 +1,6 @@
 require('dotenv').config();
 
+const cors = require('cors')
 const express = require('express');
 const mongoose = require('mongoose');
 const mongoString = process.env.DATABASE_URL;
@@ -16,12 +17,14 @@ database.once('connected', () => {
 })
 
 const usecases = require('./src/routes/usecases');
+const questionnaire = require('./src/routes/questionnaire');
 // Add other service routes here. e.g. questionaires
 // const usecases = require('./src/routes/usecases');
 
 const app = express(); 
 const PORT = process.env.PORT || 3000; 
 app.use(express.json());
+app.use(cors());
 
 // For testing purposes 
 app.get("/", (req, res) => { 
@@ -33,3 +36,4 @@ app.listen(PORT, () => {
 });
 
 app.use('/api/usecases/', usecases)
+app.use('/api/questionnaire/', questionnaire)

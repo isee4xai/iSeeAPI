@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router()
 const usecasectrl = require('../controllers/usecase');
 const personactrl = require('../controllers/persona');
+const intentctrl = require('../controllers/intent');
 
 //----------------------------------------------------
 // Usecase Related Endpoints
@@ -22,6 +23,9 @@ router.get('/', usecasectrl.list);
 // Update Settings
 router.patch('/:id/settings', usecasectrl.updateSettings);
 
+// Update published state
+router.patch('/:id/publish', usecasectrl.updatePublish);
+
 // Delete by ID
 router.delete('/:id', usecasectrl.delete);
 
@@ -38,5 +42,16 @@ router.patch('/:id/persona/:personaId', personactrl.updateDetails);
 
 // Delete Persona Details
 router.delete('/:id/persona/:personaId', personactrl.delete);
+
+
+//----------------------------------------------------
+// Intent Related Endpoints
+//---------------------------------------------------
+
+// Add intent to Persona
+router.post('/:id/persona/:personaId/intent', intentctrl.add);
+router.delete('/:id/persona/:personaId/intent/:intentId', intentctrl.delete);
+router.patch('/:id/persona/:personaId/intent/:intentId', intentctrl.update);
+
 
 module.exports = router;
