@@ -3,6 +3,9 @@ const Usecase = require('../models/usecase');
 module.exports.create = async (req, res) => {
     const data = new Usecase(req.body)
     try {
+        data.company = req.companyId;
+        data.user = req.userId;
+
         const dataToSave = await data.save();
         res.status(200).json(dataToSave)
     }
@@ -30,7 +33,11 @@ module.exports.update = async (req, res) => {
         const result = await Usecase.findByIdAndUpdate(
             id, updatedData, options
         )
-        res.send(result)
+        if (result) {
+            res.send(result)
+        } else {
+            res.status(404).json({ message: "Usecase not found" })
+        }
     }
     catch (error) {
         res.status(400).json({ message: error.message })
@@ -38,7 +45,6 @@ module.exports.update = async (req, res) => {
 }
 
 module.exports.updateSettings = async (req, res) => {
-    console.log("test")
     try {
         const id = req.params.id;
         const updatedData = { "settings": req.body.settings };
@@ -59,17 +65,15 @@ module.exports.updateSettings = async (req, res) => {
     }
 }
 
-
 module.exports.list = async (req, res) => {
     try {
-        const data = await Usecase.find({});
+        const data = await Usecase.find({ company: req.companyId });
         res.json(data)
     }
     catch (error) {
         res.status(500).json({ message: error.message })
     }
 }
-
 
 module.exports.delete = async (req, res) => {
     try {
@@ -87,11 +91,13 @@ module.exports.updatePublish = async (req, res) => {
         const id = req.params.id;
         const data = await Usecase.findById(id)
 
-        data.published =  req.body.status
+        if (!data) {
+            return res.status(404).send({ message: "Usecase Not found." });
+        }
 
+        data.published = req.body.status
         data.save()
-
-        res.send(`Publish state of ${data.name} has been updated.`)
+        res.status(200).json({ message: "Usecase Published" })
     }
     catch (error) {
         res.status(400).json({ message: error.message })

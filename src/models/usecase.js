@@ -40,6 +40,14 @@ const usecaseSchema = new mongoose.Schema({
     },
     personas: {
         type: [personaSchema]
+    },
+    company: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Company'
+    },
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
     }
 }, {
     strict: false,

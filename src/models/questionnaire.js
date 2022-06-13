@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const questionnaireschema = new mongoose.Schema({
-    _id: String,
+    // _id: String,
     name: String,
     dimension: String,
     questions: [{
