@@ -1,8 +1,7 @@
 const questionnaire = require("../models/questionnaire");
-const { v4: uuidv4 } = require("uuid");
 
 module.exports.create = async (req, res) => {
-  const data = new questionnaire({ _id: uuidv4(), ...req.body });
+  const data = new questionnaire(req.body);
 
   try {
     const result = await data.save();

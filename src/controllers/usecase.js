@@ -2,7 +2,6 @@ const Usecase = require('../models/usecase');
 
 module.exports.create = async (req, res) => {
     const data = new Usecase(req.body)
-
     try {
         const dataToSave = await data.save();
         res.status(200).json(dataToSave)
@@ -39,6 +38,7 @@ module.exports.update = async (req, res) => {
 }
 
 module.exports.updateSettings = async (req, res) => {
+    console.log("test")
     try {
         const id = req.params.id;
         const updatedData = { "settings": req.body.settings };
@@ -54,6 +54,7 @@ module.exports.updateSettings = async (req, res) => {
         }
     }
     catch (error) {
+        console.log(error)
         res.status(400).json({ message: error.message })
     }
 }
@@ -81,4 +82,19 @@ module.exports.delete = async (req, res) => {
     }
 }
 
+module.exports.updatePublish = async (req, res) => {
+    try {
+        const id = req.params.id;
+        const data = await Usecase.findById(id)
+
+        data.published =  req.body.status
+
+        data.save()
+
+        res.send(`Publish state of ${data.name} has been updated.`)
+    }
+    catch (error) {
+        res.status(400).json({ message: error.message })
+    }
+}
 

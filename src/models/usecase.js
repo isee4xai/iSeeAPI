@@ -35,6 +35,9 @@ const usecaseSchema = new mongoose.Schema({
     stats: {
         type: Object
     },
+    published: {
+        type: Boolean
+    },
     personas: {
         type: [personaSchema]
     }
