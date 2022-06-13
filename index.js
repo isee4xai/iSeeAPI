@@ -1,6 +1,7 @@
 require('dotenv').config();
 
 const express = require('express');
+const cors = require('cors');
 const mongoose = require('mongoose');
 const mongoString = process.env.DATABASE_URL;
 
@@ -17,13 +18,14 @@ database.once('connected', () => {
 
 const usecases = require('./src/routes/usecases');
 const questionnaire = require('./src/routes/questionnaire');
+const interaction = require('./src/routes/interaction');
 // Add other service routes here. e.g. questionaires
 // const usecases = require('./src/routes/usecases');
 
 const app = express(); 
 const PORT = process.env.PORT || 3000; 
 app.use(express.json());
-
+app.use(cors());
 // For testing purposes 
 app.get("/", (req, res) => { 
     res.send("iSee Core API"); 
@@ -35,3 +37,4 @@ app.listen(PORT, () => {
 
 app.use('/api/usecases/', usecases)
 app.use('/api/questionnaire/', questionnaire)
+app.use('/api/interaction/', interaction)
