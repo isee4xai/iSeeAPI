@@ -53,5 +53,11 @@ router.post('/:id/persona/:personaId/intent', intentctrl.add);
 router.delete('/:id/persona/:personaId/intent/:intentId', intentctrl.delete);
 router.patch('/:id/persona/:personaId/intent/:intentId', intentctrl.update);
 
+//----------------------------------------------------
+// Stat Related Endpoints
+//---------------------------------------------------
+
+router.get('/:id/stats', usecasectrl.getStats);
+router.get('/:id/persona/:personaId/:intent/stats', usecasectrl.getPersonaIntentStats);
 
 module.exports = router;
