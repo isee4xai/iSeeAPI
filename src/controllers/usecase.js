@@ -200,12 +200,14 @@ module.exports.getPersonaIntentStats = async (req, res) => {
       usecaseId: req.params.id, 
       personaId: req.params.personaId 
     });
+
     const usecase = await Usecase.findById(req.params.id)
 
     const evaluation = usecase.personas
-      .filter(({details})=> details.name === req.params.personaId)[0]
-      .intents.filter(intent => intent.name === req.params.intent)[0]
-      .evaluation.questions;
+    .filter((persona) => persona._id == req.params.personaId)[0]
+    .intents.filter((intent) => intent.name == req.params.intent)[0]
+    .evaluation.questions;
+      
 
     // filter the question based on the desired intent
     const questionList = interactions.reduce((prev, interaction) => {
@@ -227,6 +229,8 @@ module.exports.getPersonaIntentStats = async (req, res) => {
 
     const parseQuestions = (questionList) => {
       const questions = getDefaultEvaluation()
+
+      console.log(questionList)
 
       questionList.forEach((question) => {
           let index = questions.findIndex(q => q.question === question.content);
@@ -255,7 +259,7 @@ module.exports.getPersonaIntentStats = async (req, res) => {
 
         return questions
       }
-      //return the stats
+      // return the stats
     res.json(parseQuestions(questionList));
   } catch (error) {
     res.status(400).json({ message: error.message });
