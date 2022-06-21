@@ -19,6 +19,7 @@ database.once('connected', () => {
 const usecases = require('./src/routes/usecases');
 const questionnaire = require('./src/routes/questionnaire');
 const interaction = require('./src/routes/interaction');
+const stats = require('./src/routes/stats');
 // Add other service routes here. e.g. questionaires
 
 const app = express(); 
@@ -38,3 +39,4 @@ app.listen(PORT, () => {
 app.use('/api/usecases/', usecases)
 app.use('/api/questionnaire/', questionnaire)
 app.use('/api/interaction/', interaction)
+app.use('/api/stats/', stats)
