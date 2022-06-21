@@ -7,6 +7,7 @@
 #### Questionnaire
 
 - Get All: `GET /questionnaire`
+- Get One: `GET /questionnaire/:id`
 - Create: `POST /questionnaire`
 - Update: `PATCH /questionnaire/:id`
 - Delete: `DELETE /questionnaire/:id`
@@ -14,8 +15,10 @@
 #### Usecases
 
 - Get All: `GET /usecases`
+- Get One: `GET /usecases/:id`
 - Create: `POST /usecases`
-- Update: `PATCH /usecases/:id`
+- Update Settings: `PATCH /usecases/:id/settings`
+- Update Published State: `PATCH /usecases/:id/publish`
 - Delete: `DELETE /usecases/:id`
 
 #### Usecases => Personas
@@ -23,6 +26,22 @@
 - Add New: `POST /usecases/:id/persona`
 - Update: `PATCH /usecases/:id/persona/:personaId`
 - Delete: `DELETE /usecases/:id/persona/:personaId`
+
+#### Usecases => Personas => Intent
+
+- Add New: `POST /usecases/:id/persona/:personaId/intent `
+- Delete : `DELETE /usecases/:id/persona/:personaId/intent/:intentId `
+- Update : `PATCH /usecases/:id/persona/:personaId/intent/:intentId `
+
+#### Interactions
+
+- Get All: `GET /interaction/`
+- Add New: `POST /interaction/`
+
+#### Stats
+
+- Get Global Stats: `GET /stats/usecases/:id`
+- Get Intent Stats: `GET /stats/usecases/:id/persona/:personaId/:intent/`
 
 ### Setup
 
