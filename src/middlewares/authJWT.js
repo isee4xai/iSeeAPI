@@ -1,17 +1,26 @@
 const User = require('../models/user');
 var bcrypt = require("bcryptjs");
 var jwt = require("jsonwebtoken");
+const { TokenExpiredError } = jwt;
+
 const Usecase = require('../models/usecase');
-const SECRET = process.env.SECRET;
+const JWT_SECRET = process.env.JWT_SECRET;
+
+const catchAuth = (err, res) => {
+    if (err instanceof TokenExpiredError) {
+      return res.status(401).send({ message: "Unauthorized! Please check your Access Token!" });
+    }
+    return res.sendStatus(401).send({ message: "Unauthorized API Call!" });
+  }
 
 verifyToken = (req, res, next) => {
     let token = req.headers["x-access-token"];
     if (!token) {
         return res.status(403).send({ message: "Invalid Access token!" });
     }
-    jwt.verify(token, SECRET, (err, decoded) => {
+    jwt.verify(token, JWT_SECRET, (err, decoded) => {
         if (err) {
-            return res.status(401).send({ message: "Unauthorized! Please check your Access Token" });
+            return catchAuth(err, res);
         }
         req.userId = decoded._id;
         next();

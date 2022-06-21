@@ -3,7 +3,7 @@ const User = require('../models/user');
 const Company = require('../models/company');
 var bcrypt = require("bcryptjs");
 var jwt = require("jsonwebtoken");
-const SECRET = process.env.SECRET;
+const JWT_SECRET = process.env.JWT_SECRET;
 
 module.exports.createDesignUserWithCompany = async (req, res) => {
     try {
@@ -63,7 +63,7 @@ module.exports.login = async (req, res) => {
             });
         }
 
-        var token = jwt.sign({ _id: user._id, companyId: user.company._id }, SECRET, {
+        var token = jwt.sign({ _id: user._id, companyId: user.company._id }, JWT_SECRET, {
             expiresIn: 86400 // 24 hours - Update Later
         });
 
