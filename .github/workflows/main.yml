@@ -1,0 +1,36 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Login to DockerHub 
+      uses: docker/login-action@v1 
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+        
+    - name: Build and push  the Docker image
+      uses: docker/build-push-action@v2
+      with:
+          push: true
+          file: Dockerfile.dev
+          tags: isee4xai/api:dev
+          
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    name: Deploy on dev platform 
+    steps:
+      - uses: distributhor/workflow-webhook@v2
+        env:
+          webhook_url: ${{ secrets.WEBHOOK_URL_DEV }}
+          webhook_secret: ${{ secrets.WEBHOOK_TOKEN_DEV }}
+          
