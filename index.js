@@ -51,5 +51,6 @@ app.listen(PORT, () => {
 
 app.use('/api/usecases/', [authJwt.verifyToken, authJwt.isDesignUser], usecases);
 app.use('/api/questionnaire/', questionnaire)
+app.use('/api/user/', users)
 app.use('/api/interaction/', interaction)
 app.use('/api/stats/', stats)
