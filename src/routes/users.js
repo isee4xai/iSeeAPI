@@ -10,7 +10,10 @@ const intentctrl = require('../controllers/intent');
 
 // Remove in Production
 // Create User
-router.post('/create', auth.createDesignUserWithCompany);
 router.post('/login', auth.login);
+router.post('/admin_create', auth.admin_createDesignUserWithCompany);
+router.post('/admin_companies', auth.admin_companies);
+router.post('/admin_add_user', auth.admin_add_user);
+router.post('/admin_all_users', auth.admin_all_users);
 
 module.exports = router;
