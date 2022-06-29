@@ -32,5 +32,6 @@ jobs:
           webhook_url: ${{ secrets.WEBHOOK_URL_DEV }}
           webhook_secret: ${{ secrets.WEBHOOK_TOKEN_DEV }}
           data: '{"DOCKER_PULL_SERVICES":"api"}'
+          webhook_type: 'json-extended'
  
           
