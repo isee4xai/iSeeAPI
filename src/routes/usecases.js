@@ -18,6 +18,9 @@ router.patch('/:id', [isCompanyUsecase], usecasectrl.update);
 // Get one
 router.get('/:id', [isCompanyUsecase], usecasectrl.get);
 
+// Get one with iSee casestructure JSON Format
+router.get('/:id/casestructure', [isCompanyUsecase], usecasectrl.getCaseStructure);
+
 // Get all
 router.get('/', usecasectrl.list);
 
