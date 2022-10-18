@@ -23,6 +23,7 @@ const users = require('./src/routes/users');
 const authJwt = require('./src/middlewares/authJWT');
 const interaction = require('./src/routes/interaction');
 const stats = require('./src/routes/stats');
+const trees = require('./src/routes/trees');
 // Add other service routes here. e.g. questionaires
 
 
@@ -54,3 +55,4 @@ app.use('/api/questionnaire/', questionnaire)
 app.use('/api/user/', users)
 app.use('/api/interaction/', interaction)
 app.use('/api/stats/', stats)
+app.use('/api/trees/', trees)
