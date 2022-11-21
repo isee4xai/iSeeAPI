@@ -1,13 +1,14 @@
 const Usecase = require('../models/usecase');
+const Persona = require('../models/persona');
 
 module.exports.add = async (req, res) => {
-    const data = new Usecase(req.body)
+    const data = new Persona(req.body)
 
     try {
         const usecase = await Usecase.findById(req.params.id);
         usecase.personas.push(data);
         const save = await usecase.save();
-        res.status(200).json(save)
+        res.status(200).json(data)
     }
     catch (error) {
         res.status(400).json({ message: error.message })

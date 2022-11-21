@@ -3,6 +3,7 @@
 
 const mongoose = require('mongoose');
 
+// Duplicated on persona.js file 
 const personaSchema = new mongoose.Schema({
     details: {
         type: Object
@@ -53,7 +54,5 @@ const usecaseSchema = new mongoose.Schema({
     strict: false,
     timestamps: true
 })
-
-module.exports = mongoose.model('Persona', personaSchema)
 
 module.exports = mongoose.model('Usecase', usecaseSchema)
