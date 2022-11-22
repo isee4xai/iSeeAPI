@@ -134,10 +134,11 @@ module.exports.login = async (req, res) => {
         }
 
         var token = jwt.sign({ _id: user._id, companyId: user.company._id }, JWT_SECRET, {
-            expiresIn: 86400 // 24 hours - Update Later
+            expiresIn: '24h' // 24 hours - Update Later
         });
 
         const user_res = {
+            _id: user._id,
             name: user.name,
             email: user.email,
             company: user.company,
