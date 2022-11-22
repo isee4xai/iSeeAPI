@@ -24,6 +24,7 @@ const authJwt = require('./src/middlewares/authJWT');
 const interaction = require('./src/routes/interaction');
 const stats = require('./src/routes/stats');
 const trees = require('./src/routes/trees');
+const explainers = require('./src/routes/explainers');
 // Add other service routes here. e.g. questionaires
 
 
@@ -51,8 +52,10 @@ app.listen(PORT, () => {
 });
 
 app.use('/api/usecases/', [authJwt.verifyToken, authJwt.isDesignUser], usecases);
+
 app.use('/api/questionnaire/', questionnaire)
 app.use('/api/user/', users)
 app.use('/api/interaction/', interaction)
 app.use('/api/stats/', stats)
 app.use('/api/trees/', trees)
+app.use('/api/explainers/', explainers)
