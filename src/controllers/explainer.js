@@ -4,7 +4,7 @@ const EXPLAINER_URL = process.env.EXPLAINER_URL;
 
 module.exports.list = async (req, res) => {
     try {
-        const response = await axios.get(EXPLAINER_URL+'Explainers')
+        const response = await axios.get(EXPLAINER_URL+'/Explainers')
         res.json(response.data)
     }
     catch (error) {
@@ -16,7 +16,7 @@ module.exports.list = async (req, res) => {
 module.exports.getMeta = async (req, res) => {
     try {
         const explainer_id = req.query.id
-        const response = await axios.get(EXPLAINER_URL+explainer_id)
+        const response = await axios.get(EXPLAINER_URL+'/'+explainer_id)
         res.json(response.data)
     }
     catch (error) {
