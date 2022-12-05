@@ -5,7 +5,7 @@ const { v4: uuidv4, v4 } = require("uuid");
 
 const CBRAPI_URL = process.env.CBRAPI_URL;
 const CBRAPI_PROJECT = process.env.CBRAPI_PROJECT;
-const NUM_QYERY_FIELDS = 3
+const NUM_QUERY_FIELDS = 8
 
 module.exports.query = async (req, res) => {
     try {
@@ -30,7 +30,8 @@ module.exports.query = async (req, res) => {
                     "similarity": "Equal",
                     "weight": 1,
                     "unknown": false,
-                    "strategy": "Best Match"
+                    "strategy": "Best Match",
+                    "value": usecase.settings.dataset_type
                 },
                 {
                     "name": "AITask",
@@ -56,7 +57,7 @@ module.exports.query = async (req, res) => {
                     "similarity": "Equal",
                     "weight": 1,
                     "unknown": false,
-                    "strategy": "Best Match"
+                    "strategy": "Best Match",
                 },
                 {
                     "name": "ExplainerConcurrentness",
@@ -64,7 +65,8 @@ module.exports.query = async (req, res) => {
                     "similarity": "Equal",
                     "weight": 1,
                     "unknown": false,
-                    "strategy": "Best Match"
+                    "strategy": "Best Match",
+                    "value": "http://www.w3id.org/iSeeOnto/explainer#post-hoc" // CHANGE LATER
                 },
                 {
                     "name": "ExplanationPresentation",
@@ -72,7 +74,8 @@ module.exports.query = async (req, res) => {
                     "similarity": "Equal",
                     "weight": 1,
                     "unknown": false,
-                    "strategy": "Best Match"
+                    "strategy": "Best Match",
+                    "value": "http://semanticscience.org/resource/SIO_001194" // CHANGE LATER
                 },
                 {
                     "name": "ExplanationScope",
@@ -80,7 +83,7 @@ module.exports.query = async (req, res) => {
                     "similarity": "Equal",
                     "weight": 1,
                     "unknown": false,
-                    "strategy": "Best Match"
+                    "strategy": "Best Match",
                 },
                 {
                     "name": "ExplanationTarget",
@@ -88,7 +91,7 @@ module.exports.query = async (req, res) => {
                     "similarity": "Equal",
                     "weight": 1,
                     "unknown": false,
-                    "strategy": "Best Match"
+                    "strategy": "Best Match",
                 },
                 {
                     "name": "TechnicalFacilities",
@@ -104,7 +107,8 @@ module.exports.query = async (req, res) => {
                     "similarity": "Equal",
                     "weight": 1,
                     "unknown": false,
-                    "strategy": "Best Match"
+                    "strategy": "Best Match",
+                    "value": persona.details.ai_knowledge_level
                 },
                 {
                     "name": "DomainKnowledgeLevel",
@@ -112,10 +116,12 @@ module.exports.query = async (req, res) => {
                     "similarity": "Equal",
                     "weight": 1,
                     "unknown": false,
-                    "strategy": "Best Match"
+                    "strategy": "Best Match",
+                    "value": persona.details.domain_knowledge_level
+
                 },
                 {
-                    "name": "UserQuestion",
+                    "name": "UserQuestionTarget",
                     "type": "String",
                     "similarity": "Equal",
                     "weight": 1,
@@ -158,85 +164,29 @@ module.exports.query = async (req, res) => {
         const response = await axios(config)
         let strategies = []
         await Promise.all(response.data.bestK.map(async (strategy) => {
-
+            // console.log()
             // let data = new Tree(strategy.Solution)
-            const temp = {
+            const solution_bt = {
                 "name": "Tree",
                 "description":"",
                 "path" : "b3projects-"+v4(),
-                "data": {
-                    "version": "0.1.0",
-                    "scope": "project",
-                    "selectedTree": "23bb1a7b-a4b3-449e-8c82-4e6f3e0cb327",
-                    "trees": [
-                        {
-                            "version": "0.1.0",
-                            "scope": "tree",
-                            "id": "23bb1a7b-a4b3-449e-8c82-4e6f3e0cb327",
-                            "Instance": "Explanation Experience",
-                            "description": "",
-                            "root": "ff978c28-7448-49af-acb0-bed28400292f",
-                            "properties": {},
-                            "nodes": {
-                                "ff978c28-7448-49af-acb0-bed28400292f": {
-                                    "id": "ff978c28-7448-49af-acb0-bed28400292f",
-                                    "Concept": "Sequence",
-                                    "Instance": "Sequence",
-                                    "description": "",
-                                    "properties": {},
-                                    "display": {
-                                        "x": 0,
-                                        "y": 96
-                                    },
-                                    "firstChild": {
-                                        "Id": "66dd0924-7b59-41c2-b690-a2f613840c68",
-                                        "Next": null
-                                    }
-                                },
-                                "66dd0924-7b59-41c2-b690-a2f613840c68": {
-                                    "id": "66dd0924-7b59-41c2-b690-a2f613840c68",
-                                    "Concept": "Explanation Method",
-                                    "Instance": "/Tabular/DisCERN",
-                                    "description": "",
-                                    "properties": {},
-                                    "display": {
-                                        "x": 0,
-                                        "y": 216
-                                    },
-                                    "params": {
-                                        "desired_class": "",
-                                        "feature_attribution_method": "",
-                                        "attributed_instance": ""
-                                    }
-                                }
-                            },
-                            "display": {
-                                "camera_x": 720,
-                                "camera_y": 394.5,
-                                "camera_z": 1,
-                                "x": 0,
-                                "y": 0
-                            }
-                        }
-                    ],
-                    "custom_nodes": []
-                }
+                "data": strategy.Solution
             }
             let methods = []
-            temp.data.trees.forEach(t => {
+            solution_bt.data.trees.forEach(t => {
                 for (var n in t.nodes) {
                     if (t.nodes[n].Concept == "Explanation Method") {
                         methods.push(t.nodes[n].Instance)
                     }
                 }
             })
-            let data = new Tree(temp)
+            let data = new Tree(solution_bt)
             let dataToSave = await data.save();
 
             let s = {
                 name: strategy.Name,
                 score__: strategy.score__,
-                percentage: ((strategy.score__) / NUM_QYERY_FIELDS * 100).toFixed(2),
+                percentage: ((strategy.score__) / NUM_QUERY_FIELDS * 100).toFixed(2),
                 match_explanation: strategy.match_explanation,
                 tree: dataToSave._id,
                 selected: false,
