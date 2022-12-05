@@ -222,7 +222,7 @@ module.exports.query = async (req, res) => {
                 }
             }
             let methods = []
-            temp.trees.forEach(t => {
+            temp.data.trees.forEach(t => {
                 for (var n in t.nodes) {
                     if (t.nodes[n].Concept == "Explanation Method") {
                         methods.push(t.nodes[n].Instance)
