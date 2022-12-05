@@ -16,6 +16,13 @@ const personaSchema = new mongoose.Schema({
     }
 }, { strict: false, timestamps: true });
 
+// const intentSchema = new mongoose.Schema({
+//     completed: {
+//         type: Boolean
+//     },
+//     strategies
+// }, { strict: false, timestamps: true });
+
 const usecaseSchema = new mongoose.Schema({
     name: {
         required: true,
