@@ -258,3 +258,29 @@ module.exports.query = async (req, res) => {
         res.status(400).json({ message: error.message })
     }
 }
+
+module.exports.setDefault = async (req, res) => {
+    try {
+        const usecase = await Usecase.findById(req.params.id);
+        let persona = usecase.personas.id(req.params.personaId);
+        const intentIndex = persona.intents.map((e) => e.id).indexOf(req.params.intentId);
+
+        let selected_intent = persona.intents[intentIndex]
+       
+        selected_intent.strategies.forEach(function(strat){
+            if(strat.id == req.params.strategyId){
+                strat.selected = true;
+                selected_intent.strategy_selected = true;
+            }
+        })
+
+        persona.intents[intentIndex] = selected_intent;
+
+        const save = await usecase.save();
+
+        res.status(200).json(selected_intent)
+    }
+    catch (error) {
+        res.status(400).json({ message: error.message })
+    }
+}
