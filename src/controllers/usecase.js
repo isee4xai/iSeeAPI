@@ -27,39 +27,42 @@ module.exports.get = async (req, res) => {
 module.exports.getCaseStructure = async (req, res) => {
   try {
     const data = await Usecase.findById(req.params.id);
-
-    const response = await axios.get('https://raw.githubusercontent.com/isee4xai/iSeeCases/case-structure-v2/case-structure-extended.json')
+    const response = await axios.get('https://raw.githubusercontent.com/isee4xai/iSeeCases/main/case-structure.json');
     const casestructure = response.data;
     var build_json = JSON.stringify(casestructure);
 
+    const reponse_bases = await axios.get('https://raw.githubusercontent.com/isee4xai/iSeeCases/main/bases.json');
+    const bases = reponse_bases.data;
+    var base_list = [];
+    for (k in bases){
+      var base = {
+        "key": k,
+        "val": bases[k]
+      };
+      base_list.push(base);
+    }
+
+    base_list.forEach(function (change) {
+      build_json = build_json.replaceAll(change['key'], change['val'])
+    });
+
+    // need to remove spaces from the use case name
+    build_json = build_json.replaceAll("<casename>", data["name"].replaceAll(" ", "_"));
+
+    //basics updates
     var conv = [
       {
-        "key": "<casename>",
-        "val": "name",
-        "sub": ""
-      },
-      {
-        "key": "<Description>",
+        "key": "<AITaskGoal>",
         "val": "goal",
         "sub": ""
       },
       {
-        "key": "<AITask>",
-        "val": "ai_task",
-        "sub": "settings"
-      },
-      {
-        "key": "<AIMethod>",
-        "val": "ai_method",
-        "sub": "settings"
-      },
-      {
-        "key": "<NumberOfFeatures>",
+        "key": "<Dataset_Feature_Quantity_Range>",
         "val": "num_features",
         "sub": "settings"
       },
       {
-        "key": "<NumberOfInstances>",
+        "key": "<Dataset_Instance_Quantity_Range>",
         "val": "num_instances",
         "sub": "settings"
       },
@@ -83,51 +86,94 @@ module.exports.getCaseStructure = async (req, res) => {
       }
     });
 
-    build_json = build_json.replaceAll('<Portability>', 'model-specific')
-    build_json = build_json.replaceAll('<Concurrentness>', 'post-hoc')
-    build_json = build_json.replaceAll('<Presentation>', 'media')
-    build_json = build_json.replaceAll('<ExplanationScope>', 'local')
-    build_json = build_json.replaceAll('<ExplanationTarget>', 'prediction')
+    build_json = build_json.replaceAll('<Portability>', 'http://www.w3id.org/iSeeOnto/explainer#model-agnostic');
+    build_json = build_json.replaceAll('<Concurrentness>', 'http://www.w3id.org/iSeeOnto/explainer#post-hoc');
+    build_json = build_json.replaceAll('<Presentation>', 'http://semanticscience.org/resource/SIO_001194');
+    build_json = build_json.replaceAll('<ExplanationScope>', 'http://www.w3id.org/iSeeOnto/explainer#local');
+    build_json = build_json.replaceAll('<ExplanationTarget>', 'http://www.w3id.org/iSeeOnto/explainer#prediction');
+    //TODO system recommendations as a list
+    build_json = build_json.replaceAll('<SystemRecommendation>', '');
 
     build_json = JSON.parse(build_json);
 
-    // assessments
-    var localasse  = []
-    data.settings.assessments.forEach(function(a){
-      var single = {
-        "instance": data.name+""+a.assesment_type,
-        "basedOn": a.assesment_type,
-        "comment": a.assesment_val,
-        "measures": "Performance",
-        "classes": [
-          "AIModelAssessmentResult"
-        ]
-      }
-      localasse.push(single)
-    })
-    build_json["hasDescription"]["annotatedBy"] =  localasse
+    //AITask keeps the last item
+    var ai_tasks = data["settings"]["ai_task"];
+    build_json["http://www.w3id.org/iSeeOnto/explanationexperience#hasDescription"]["http://www.w3id.org/iSeeOnto/explanationexperience#hasAIModel"]["http://www.w3id.org/iSeeOnto/aimodel#solves"]["classes"] = [ai_tasks[ai_tasks.length-1]];
 
+    //AIMethod:list keeps a list of last items
+    var ai_methods = data["settings"]["ai_method"];
+    var methods = [];
+    ai_methods.forEach(function (method) {
+      methods.push(method[method.length-1]);
+    });
+    build_json["http://www.w3id.org/iSeeOnto/explanationexperience#hasDescription"]["http://www.w3id.org/iSeeOnto/explanationexperience#hasAIModel"]["http://www.w3id.org/iSeeOnto/explainer#utilises"]["classes"] = methods;
+
+    // AIModelAssessements todo once 
     var all_cases = []
-
+    // console.log(build_json);
     // Now do persona by persona
     data.personas.forEach(function(persona){
-      // console.log(persona)
       persona.intents.forEach(intent => {
+        // console.log(intent);
         var new_case = JSON.stringify(build_json)
-        new_case = new_case.replaceAll('<Intent>', intent.name);
-        new_case = new_case.replaceAll('<Technical Facilities>', "ScreenDisplay");
-
-        // console.log(persona.details.ai_level)
-        new_case = new_case.replaceAll('<AIKnowledgeLevel>', persona.details.ai_level);
-        new_case = new_case.replaceAll('<DomainKnowledgeLevel>', persona.details.domain_level);
-        new_case = new_case.replaceAll('<UserQuestion>', intent.questions);
-        new_case = new_case.replaceAll('<UserQuestionTarget>', intent.name);
         
-        all_cases.push(JSON.parse(new_case))
-      });
+        new_case = new_case.replaceAll('<UserGroup>', persona.details.name);
+        new_case = new_case.replaceAll('<Intent>', intent.name);
+        new_case = new_case.replaceAll('<AIKnowledgeLevel>', persona.details.ai_knowledge_level);
+        new_case = new_case.replaceAll('<DomainKnowledgeLevel>', persona.details.domain_knowledge_level);
+        new_case = JSON.parse(new_case);
 
-    })
-    
+        var asks  = []
+        intent.questions.forEach(question => {
+          var ask = {...new_case["http://www.w3id.org/iSeeOnto/explanationexperience#hasDescription"]["http://www.w3id.org/iSeeOnto/explanationexperience#hasUserGroup"]["https://purl.org/heals/eo#asks"][0]};
+          ask["http://semanticscience.org/resource/SIO_000300"] = question.text;
+          ask["instance"] = ask["instance"]+"_"+question.id;
+          if (question.target == "https://purl.org/heals/eo#SystemRecommendation"){
+            ask["http://www.w3id.org/iSeeOnto/user#hasQuestionTarget"] = new_case["http://www.w3id.org/iSeeOnto/explanationexperience#hasDescription"]["http://www.w3id.org/iSeeOnto/explanationexperience#hasAIModel"]["http://www.w3id.org/iSeeOnto/aimodel#solves"]["http://semanticscience.org/resource/SIO_000229"][0];
+          }
+          else if (question.target == "https://purl.org/heals/eo#ArtificialIntelligenceMethod"){
+            ask["http://www.w3id.org/iSeeOnto/user#hasQuestionTarget"] = new_case["http://www.w3id.org/iSeeOnto/explanationexperience#hasDescription"]["http://www.w3id.org/iSeeOnto/explanationexperience#hasAIModel"]["http://www.w3id.org/iSeeOnto/explainer#utilises"];
+          }
+          else if (question.target == "http://www.w3id.org/iSeeOnto/aimodel#Dataset"){
+            ask["http://www.w3id.org/iSeeOnto/user#hasQuestionTarget"] = new_case["http://www.w3id.org/iSeeOnto/explanationexperience#hasDescription"]["http://www.w3id.org/iSeeOnto/explanationexperience#hasAIModel"]["http://www.w3id.org/iSeeOnto/aimodel#trainedOn"][0];
+          }
+          asks.push(ask);
+        });
+        new_case["http://www.w3id.org/iSeeOnto/explanationexperience#hasDescription"]["http://www.w3id.org/iSeeOnto/explanationexperience#hasUserGroup"]["https://purl.org/heals/eo#asks"] =  asks;
+
+        var evals  = []
+        var index = 0;
+        intent.evaluation.questions.forEach(question => {
+          var ask = {...new_case["http://www.w3id.org/iSeeOnto/explanationexperience#hasOutcome"]["http://linkedu.eu/dedalo/explanationPattern.owl#isBasedOn"][0]};
+          ask["http://www.w3.org/2000/01/rdf-schema#comment"] = question.content;
+          ask["instance"] = ask["instance"]+"_"+question.id;
+          ask["http://www.w3id.org/iSeeOnto/userevaluation#sequenceIndex"] = index++;
+          switch (question.responseType){
+            case "Likert":
+              ask["classes"] = ["http://www.w3id.org/iSeeOnto/userevaluation#Likert_Scale_Question"];
+              break;
+            default:
+              ask["classes"] = ["http://www.w3id.org/iSeeOnto/userevaluation#Likert_Scale_Question"];
+          }
+          ask["http://sensornet.abdn.ac.uk/onts/Qual-O#measures"]["instance"] = question.dimension;
+
+          var ops = [];
+          var opIndex = 0;
+          question.responseOptions.forEach(option=> {
+            var op = {...new_case["http://www.w3id.org/iSeeOnto/explanationexperience#hasOutcome"]["http://linkedu.eu/dedalo/explanationPattern.owl#isBasedOn"][0]["http://www.w3id.org/iSeeOnto/userevaluation#hasResponseOptions"]["http://semanticscience.org/resource/SIO_000974"][0]};
+            op["instance"] = op["instance"]+"_"+option.val;
+            op["https://www.w3id.org/iSeeOnto/BehaviourTree#pair_value_literal"] = option.val;
+            op["https://www.w3id.org/iSeeOnto/BehaviourTree#pairKey"] = opIndex++;
+            ops.push(op);
+          });
+          ask["http://www.w3id.org/iSeeOnto/userevaluation#hasResponseOptions"]["http://semanticscience.org/resource/SIO_000974"] = ops;
+
+          evals.push(ask);
+        });
+        new_case["http://www.w3id.org/iSeeOnto/explanationexperience#hasOutcome"]["http://linkedu.eu/dedalo/explanationPattern.owl#isBasedOn"] =  evals; 
+        all_cases.push(new_case);
+      });
+    });
     res.json(all_cases);
   } catch (error) {
     res.status(500).json({ message: error });
