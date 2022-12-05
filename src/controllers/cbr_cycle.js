@@ -163,6 +163,7 @@ module.exports.query = async (req, res) => {
             const temp = {
                 "name": "Tree",
                 "description":"",
+                "path" : "b3projects-"+v4(),
                 "data": {
                     "version": "0.1.0",
                     "scope": "project",
