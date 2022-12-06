@@ -220,7 +220,7 @@ module.exports.setDefault = async (req, res) => {
         selected_intent.strategies.forEach(function(strat){
             if(strat.id == req.params.strategyId){
                 strat.selected = true;
-                selected_intent.strategy_selected = true;
+                selected_intent.strategy_selected = strat.tree;
             }
         })
 

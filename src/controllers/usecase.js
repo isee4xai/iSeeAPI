@@ -1,4 +1,5 @@
 const Usecase = require("../models/usecase");
+const Tree = require("../models/tree");
 const axios = require('axios');
 
 module.exports.create = async (req, res) => {
@@ -112,8 +113,9 @@ module.exports.getCaseStructure = async (req, res) => {
     var all_cases = []
     // console.log(build_json);
     // Now do persona by persona
-    data.personas.forEach(function(persona){
-      persona.intents.forEach(intent => {
+    Promise.all(
+     await data.personas.map(async function(persona){
+      await Promise.all(await persona.intents.map(async intent => {
         // console.log(intent);
         var new_case = JSON.stringify(build_json)
         
@@ -122,6 +124,10 @@ module.exports.getCaseStructure = async (req, res) => {
         new_case = new_case.replaceAll('<AIKnowledgeLevel>', persona.details.ai_knowledge_level);
         new_case = new_case.replaceAll('<DomainKnowledgeLevel>', persona.details.domain_knowledge_level);
         new_case = JSON.parse(new_case);
+
+        const selected_tree = await Tree.findById(intent.strategy_selected);
+
+        new_case["http://www.w3id.org/iSeeOnto/explanationexperience#hasSolution"] = selected_tree.data
 
         var asks  = []
         intent.questions.forEach(question => {
@@ -172,9 +178,11 @@ module.exports.getCaseStructure = async (req, res) => {
         });
         new_case["http://www.w3id.org/iSeeOnto/explanationexperience#hasOutcome"]["http://linkedu.eu/dedalo/explanationPattern.owl#isBasedOn"] =  evals; 
         all_cases.push(new_case);
-      });
+      }));
+    })).then(function(){
+      res.json(all_cases);
     });
-    res.json(all_cases);
+
   } catch (error) {
     res.status(500).json({ message: error });
   }
