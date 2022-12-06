@@ -11,7 +11,8 @@ const questionnaireschema = new mongoose.Schema({
         dimension: String,
         answer: [String],
         responseOptions: [{
-            val: String,
+            content: String,
+            id: String
         }],
         required: Boolean,
         completed: Boolean,
