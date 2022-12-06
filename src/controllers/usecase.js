@@ -164,12 +164,11 @@ module.exports.getCaseStructure = async (req, res) => {
           ask["http://sensornet.abdn.ac.uk/onts/Qual-O#measures"]["instance"] = question.dimension;
 
           var ops = [];
-          var opIndex = 0;
           question.responseOptions.forEach(option=> {
             var op = {...new_case["http://www.w3id.org/iSeeOnto/explanationexperience#hasOutcome"]["http://linkedu.eu/dedalo/explanationPattern.owl#isBasedOn"][0]["http://www.w3id.org/iSeeOnto/userevaluation#hasResponseOptions"]["http://semanticscience.org/resource/SIO_000974"][0]};
-            op["instance"] = op["instance"]+"_"+option.val;
-            op["https://www.w3id.org/iSeeOnto/BehaviourTree#pair_value_literal"] = option.val;
-            op["https://www.w3id.org/iSeeOnto/BehaviourTree#pairKey"] = opIndex++;
+            op["instance"] = op["instance"]+"_"+option.id;
+            op["https://www.w3id.org/iSeeOnto/BehaviourTree#pair_value_literal"] = option.content;
+            op["https://www.w3id.org/iSeeOnto/BehaviourTree#pairKey"] = option.id;
             ops.push(op);
           });
           ask["http://www.w3id.org/iSeeOnto/userevaluation#hasResponseOptions"]["http://semanticscience.org/resource/SIO_000974"] = ops;
