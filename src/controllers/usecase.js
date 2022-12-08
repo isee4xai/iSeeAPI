@@ -1,6 +1,9 @@
 const Usecase = require("../models/usecase");
 const Tree = require("../models/tree");
 const axios = require('axios');
+var FormData = require('form-data');
+var fs = require('fs');
+const MODELAPI_URL = process.env.MODELAPI_URL;
 
 module.exports.create = async (req, res) => {
   const data = new Usecase(req.body)
@@ -216,6 +219,105 @@ module.exports.updateSettings = async (req, res) => {
     const result = await Usecase.findByIdAndUpdate(id, updatedData, options);
     if (result) {
       res.send(result);
+    } else {
+      res.status(404).json({ message: "Usecase not found" });
+    }
+  } catch (error) {
+    console.log(error)
+    res.status(400).json({ message: error.message })
+  }
+}
+
+module.exports.updateModel = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const options = { new: true };
+
+    let updatedData = {
+      mode: req.body.mode,
+      backend: req.body.backend,
+      attributes: req.body.attributes,
+      completed: req.body.completed,
+      source_file: '',
+      dataset_file: ''
+    }
+
+    let source_file = req.files.source_file;
+    let dataset_file = req.files.dataset_file;
+
+    const path_source = __dirname + "/tmp/" + source_file.name;
+    const path_dataset = __dirname + "/tmp/" + dataset_file.name;
+
+    await source_file.mv(path_source)
+    await dataset_file.mv(path_dataset)
+    const RAND = ''; // FOR DEV
+
+    // Handle Model Upload
+    var data_source = new FormData();
+    const model_params = {
+      "alias": id + RAND,
+      "backend": 'sklearn',// FUTURE UPDATE
+      "model_task": "classification", // FUTURE UPDATE
+      "dataset_type": "Tabular", // FUTURE UPDATE
+      "attributes": JSON.parse(updatedData.attributes)
+    }
+    data_source.append('id', id + RAND);
+    data_source.append('info', JSON.stringify(model_params));
+    data_source.append('file', fs.createReadStream(path_source));
+
+    // console.log(data_source)
+    let method = "POST";
+
+    if (updatedData.completed == 'true') {
+      console.log(updatedData.completed)
+      method = "PUT";
+    }
+
+    var upload_source = {
+      method: method,
+      url: MODELAPI_URL + 'upload_model',
+      headers: {
+        'Accept': '*/*',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Connection': 'keep-alive',
+        'Content-Type': 'application/json',
+        ...data_source.getHeaders()
+      },
+      data: data_source
+    };
+
+    let response = await axios(upload_source)
+
+    console.log(response.data)
+    // Handle Dataset Upload
+    var data_dataset = new FormData();
+    data_dataset.append('id', id + RAND);
+    data_dataset.append('file', fs.createReadStream(path_dataset));
+
+    var upload_dataset = {
+      method: 'post',
+      url: MODELAPI_URL + 'dataset',
+      headers: {
+        ...data_dataset.getHeaders()
+      },
+      data: data_dataset
+    };
+
+    const responsedataset = await axios(upload_dataset);
+    console.log(responsedataset.data)
+    updatedData["dataset_file"] = responsedataset.data
+    updatedData["source_file"] = response.data
+    updatedData["completed"] = true; // FORCE COMPLETE AFTER UPLOAD TO PREVENT UPDATES
+
+    const result = await Usecase.findByIdAndUpdate(id, { model: updatedData }, options);
+    if (result) {
+      fs.unlink(path_source, function () {
+        console.log("File was deleted")
+      });
+      fs.unlink(path_dataset, function () {
+        console.log("File was deleted")
+      });
+      res.send(updatedData);
     } else {
       res.status(404).json({ message: "Usecase not found" });
     }

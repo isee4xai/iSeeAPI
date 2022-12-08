@@ -3,6 +3,8 @@ require('dotenv').config();
 const cors = require('cors')
 const express = require('express');
 const mongoose = require('mongoose');
+const fileUpload = require('express-fileupload');
+
 const mongoString = process.env.DATABASE_URL;
 
 mongoose.connect(mongoString);
@@ -32,8 +34,15 @@ const cbr_cycle = require('./src/routes/cbr_cycle');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// enable files upload
+app.use(fileUpload({
+    createParentPath: true
+}));
+
 app.use(express.json());
 app.use(cors());
+
 app.use(function (req, res, next) {
     res.header(
         "Access-Control-Allow-Headers",
