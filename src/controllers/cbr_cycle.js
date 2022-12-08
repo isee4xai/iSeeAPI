@@ -168,8 +168,8 @@ module.exports.query = async (req, res) => {
             // let data = new Tree(strategy.Solution)
             const solution_bt = {
                 "name": "Tree",
-                "description":"",
-                "path" : "b3projects-"+v4(),
+                "description": "",
+                "path": "b3projects-" + v4(),
                 "data": strategy.Solution
             }
             let methods = []
@@ -196,6 +196,14 @@ module.exports.query = async (req, res) => {
             strategies.push(s)
         }));
 
+        strategies.sort(function (a, b) {
+            var keyA = a.score__,
+                keyB = b.score__;
+            if (keyA < keyB) return 1;
+            if (keyA > keyB) return -1;
+            return 0;
+        });
+
         selected_intent.strategies = strategies
         persona.intents[intentIndex] = selected_intent;
 
@@ -216,9 +224,9 @@ module.exports.setDefault = async (req, res) => {
         const intentIndex = persona.intents.map((e) => e.id).indexOf(req.params.intentId);
 
         let selected_intent = persona.intents[intentIndex]
-       
-        selected_intent.strategies.forEach(function(strat){
-            if(strat.id == req.params.strategyId){
+
+        selected_intent.strategies.forEach(function (strat) {
+            if (strat.id == req.params.strategyId) {
                 strat.selected = true;
                 selected_intent.strategy_selected = strat.tree;
             }
