@@ -27,6 +27,9 @@ router.get('/', usecasectrl.list);
 // Update Settings
 router.patch('/:id/settings', [isCompanyUsecase], usecasectrl.updateSettings);
 
+// Update Model
+router.patch('/:id/model', [isCompanyUsecase], usecasectrl.updateModel);
+
 // Update published state
 router.patch('/:id/publish', [isCompanyUsecase], usecasectrl.updatePublish);
 
