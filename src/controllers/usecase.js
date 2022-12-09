@@ -4,6 +4,7 @@ const axios = require('axios');
 var FormData = require('form-data');
 var fs = require('fs');
 const MODELAPI_URL = process.env.MODELAPI_URL;
+const EXPLAINERAPI_URL = process.env.EXPLAINERAPI_URL;
 
 module.exports.create = async (req, res) => {
   const data = new Usecase(req.body)
@@ -389,8 +390,9 @@ module.exports.updatePublish = async (req, res) => {
   }
 }
 
-
+/////////////////////////////////////////////////////////////////////////
 // Model Hub Integration
+/////////////////////////////////////////////////////////////////////////
 module.exports.getRandomDataInstance = async (req, res) => {
   try {
 
@@ -411,15 +413,48 @@ module.exports.getRandomDataInstance = async (req, res) => {
     };
     
     let response_sample = await axios(config)
-    const sample = response_sample.data;
+    const sample = response_sample.data[0];
     res.json(sample);
   } catch (error) {
     res.status(500).json({ message: error });
   }
 }
 
+module.exports.getExplainerResponse = async (req, res) => {
+  try {
+    let data = new FormData();
+
+    data.append('id', req.params.id);
+    data.append('instance', JSON.stringify(req.body.instance));
+    if(req.body.params){
+      data.append('params', JSON.stringify(req.body.params));
+    }
+    const explainer_method = req.body.method
+    let config = {
+      method: 'post',
+      url: EXPLAINERAPI_URL+explainer_method,
+      headers: { 
+        ...data.getHeaders()
+      },
+      data : data
+    };
+    console.log(config)
+
+    const response = await axios(config);
+    let output = response.data;
+    const meta = await axios.get(EXPLAINERAPI_URL + '/' + explainer_method)
+    output.meta = meta.data
+    console.log(output)
+    res.json(output);
+  } catch (error) {
+    res.status(500).json({ message: error });
+  }
+}
+
+
 function generateRandom(maxLimit = 100){
   let rand = Math.random() * maxLimit;
   rand = Math.floor(rand);
   return rand ;
 }
+/////////////////////////////////////////////////////////////////////////
