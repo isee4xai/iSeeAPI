@@ -155,21 +155,7 @@ module.exports.getCaseStructure = async (req, res) => {
           new_case["http://www.w3id.org/iSeeOnto/explanationexperience#hasDescription"]["http://www.w3id.org/iSeeOnto/explanationexperience#hasUserGroup"]["instance"] = "http://www.w3id.org/iSeeOnto/explanationexperience/with_model/with_modelUserGroup_" + persona._id;
 
 
-          // Build Meta Data Needed for AI Model
-          var meta = {
-            AIMethod: '',
-          }
-
-          selected_tree.data.trees.forEach(t => {
-            for (var n in t.nodes) {
-              if (t.nodes[n].Concept == "Explanation Method") {
-                meta.AIMethod = t.nodes[n].Instance
-              }
-            }
-          });
-
-
-          new_case["http://www.w3id.org/iSeeOnto/explanationexperience#hasDescription"]["http://www.w3id.org/iSeeOnto/explanationexperience#hasAIModel"]["http://www.w3id.org/iSeeOnto/aimodel#hasCaseStructureMetaData"]["value"] = JSON.stringify(meta)
+          new_case["http://www.w3id.org/iSeeOnto/explanationexperience#hasDescription"]["http://www.w3id.org/iSeeOnto/explanationexperience#hasAIModel"]["http://www.w3id.org/iSeeOnto/aimodel#hasCaseStructureMetaData"]["value"] = JSON.stringify(data.model.attributes)
 
 
           new_case["http://www.w3id.org/iSeeOnto/explanationexperience#hasDescription"]["http://www.w3id.org/iSeeOnto/explanationexperience#hasUserGroup"]["https://purl.org/heals/eo#asks"] = asks;
