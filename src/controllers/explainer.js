@@ -1,10 +1,11 @@
 // const Tree = require("../models/tree");
 const axios = require('axios');
-const EXPLAINER_URL = process.env.EXPLAINER_URL;
+const EXPLAINERAPI_URL = process.env.EXPLAINERAPI_URL;
+const ONTOAPI_URL = process.env.ONTOAPI_URL;
 
 module.exports.list = async (req, res) => {
     try {
-        const response = await axios.get(EXPLAINER_URL+'/Explainers')
+        const response = await axios.get(EXPLAINERAPI_URL + '/Explainers')
         res.json(response.data)
     }
     catch (error) {
@@ -16,7 +17,7 @@ module.exports.list = async (req, res) => {
 module.exports.getMeta = async (req, res) => {
     try {
         const explainer_id = req.query.id
-        const response = await axios.get(EXPLAINER_URL+'/'+explainer_id)
+        const response = await axios.get(EXPLAINERAPI_URL + '/' + explainer_id)
         res.json(response.data)
     }
     catch (error) {

@@ -4,6 +4,7 @@ const axios = require('axios');
 var FormData = require('form-data');
 var fs = require('fs');
 const MODELAPI_URL = process.env.MODELAPI_URL;
+const EXPLAINERAPI_URL = process.env.EXPLAINERAPI_URL;
 
 module.exports.create = async (req, res) => {
   const data = new Usecase(req.body)
@@ -100,6 +101,7 @@ module.exports.getCaseStructure = async (req, res) => {
 
     build_json = JSON.parse(build_json);
 
+
     //AITask keeps the last item
     var ai_tasks = data["settings"]["ai_task"];
     build_json["http://www.w3id.org/iSeeOnto/explanationexperience#hasDescription"]["http://www.w3id.org/iSeeOnto/explanationexperience#hasAIModel"]["http://www.w3id.org/iSeeOnto/aimodel#solves"]["classes"] = [ai_tasks[ai_tasks.length - 1]];
@@ -148,6 +150,28 @@ module.exports.getCaseStructure = async (req, res) => {
             }
             asks.push(ask);
           });
+
+          // Added Unique ID for User Group
+          new_case["http://www.w3id.org/iSeeOnto/explanationexperience#hasDescription"]["http://www.w3id.org/iSeeOnto/explanationexperience#hasUserGroup"]["instance"] = "http://www.w3id.org/iSeeOnto/explanationexperience/with_model/with_modelUserGroup_" + persona._id;
+
+
+          // Build Meta Data Needed for AI Model
+          var meta = {
+            AIMethod: '',
+          }
+
+          selected_tree.data.trees.forEach(t => {
+            for (var n in t.nodes) {
+              if (t.nodes[n].Concept == "Explanation Method") {
+                meta.AIMethod = t.nodes[n].Instance
+              }
+            }
+          });
+
+
+          new_case["http://www.w3id.org/iSeeOnto/explanationexperience#hasDescription"]["http://www.w3id.org/iSeeOnto/explanationexperience#hasAIModel"]["http://www.w3id.org/iSeeOnto/aimodel#hasCaseStructureMetaData"]["value"] = JSON.stringify(meta)
+
+
           new_case["http://www.w3id.org/iSeeOnto/explanationexperience#hasDescription"]["http://www.w3id.org/iSeeOnto/explanationexperience#hasUserGroup"]["https://purl.org/heals/eo#asks"] = asks;
 
           var evals = []
@@ -262,7 +286,7 @@ module.exports.updateModel = async (req, res) => {
     }
 
     // console.log(model_params)
-    data_source.append('id', id );
+    data_source.append('id', id);
     data_source.append('info', JSON.stringify(model_params));
     data_source.append('file', fs.createReadStream(path_source));
 
@@ -365,3 +389,72 @@ module.exports.updatePublish = async (req, res) => {
     res.status(400).json({ message: error.message })
   }
 }
+
+/////////////////////////////////////////////////////////////////////////
+// Model Hub Integration
+/////////////////////////////////////////////////////////////////////////
+module.exports.getRandomDataInstance = async (req, res) => {
+  try {
+
+    var config = {
+      method: 'GET',
+      url: MODELAPI_URL + 'num_instances/'+ req.params.id,
+      headers: { }
+    };
+    
+    let response = await axios(config)
+    const num_instances = response.data;
+    const rand_index = generateRandom(num_instances);
+
+    var config = {
+      method: 'GET',
+      url: MODELAPI_URL + 'instance/'+ req.params.id+'/'+rand_index,
+      headers: { }
+    };
+    
+    let response_sample = await axios(config)
+    const sample = response_sample.data[0];
+    res.json(sample);
+  } catch (error) {
+    res.status(500).json({ message: error });
+  }
+}
+
+module.exports.getExplainerResponse = async (req, res) => {
+  try {
+    let data = new FormData();
+
+    data.append('id', req.params.id);
+    data.append('instance', JSON.stringify(req.body.instance));
+    if(req.body.params){
+      data.append('params', JSON.stringify(req.body.params));
+    }
+    const explainer_method = req.body.method
+    let config = {
+      method: 'post',
+      url: EXPLAINERAPI_URL+explainer_method,
+      headers: { 
+        ...data.getHeaders()
+      },
+      data : data
+    };
+    console.log(config)
+
+    const response = await axios(config);
+    let output = response.data;
+    const meta = await axios.get(EXPLAINERAPI_URL + '/' + explainer_method)
+    output.meta = meta.data
+    console.log(output)
+    res.json(output);
+  } catch (error) {
+    res.status(500).json({ message: error });
+  }
+}
+
+
+function generateRandom(maxLimit = 100){
+  let rand = Math.random() * maxLimit;
+  rand = Math.floor(rand);
+  return rand ;
+}
+/////////////////////////////////////////////////////////////////////////

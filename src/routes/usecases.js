@@ -20,6 +20,8 @@ router.get('/:id', [isCompanyUsecase], usecasectrl.get);
 
 // Get one with iSee casestructure JSON Format
 router.get('/:id/casestructure', [isCompanyUsecase], usecasectrl.getCaseStructure);
+router.get('/:id/sampleDataInstance', [isCompanyUsecase], usecasectrl.getRandomDataInstance);
+router.post('/:id/explainerResponse', [isCompanyUsecase], usecasectrl.getExplainerResponse);
 
 // Get all
 router.get('/', usecasectrl.list);
