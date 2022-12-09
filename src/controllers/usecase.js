@@ -100,6 +100,7 @@ module.exports.getCaseStructure = async (req, res) => {
 
     build_json = JSON.parse(build_json);
 
+    
     //AITask keeps the last item
     var ai_tasks = data["settings"]["ai_task"];
     build_json["http://www.w3id.org/iSeeOnto/explanationexperience#hasDescription"]["http://www.w3id.org/iSeeOnto/explanationexperience#hasAIModel"]["http://www.w3id.org/iSeeOnto/aimodel#solves"]["classes"] = [ai_tasks[ai_tasks.length - 1]];
@@ -148,6 +149,10 @@ module.exports.getCaseStructure = async (req, res) => {
             }
             asks.push(ask);
           });
+
+          // Added Unique ID for User Group
+          new_case["http://www.w3id.org/iSeeOnto/explanationexperience#hasDescription"]["http://www.w3id.org/iSeeOnto/explanationexperience#hasUserGroup"]["instance"] = "http://www.w3id.org/iSeeOnto/explanationexperience/with_model/with_modelUserGroup_"+persona._id;
+          
           new_case["http://www.w3id.org/iSeeOnto/explanationexperience#hasDescription"]["http://www.w3id.org/iSeeOnto/explanationexperience#hasUserGroup"]["https://purl.org/heals/eo#asks"] = asks;
 
           var evals = []
