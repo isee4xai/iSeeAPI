@@ -38,7 +38,7 @@ module.exports.getCaseStructure = async (req, res) => {
     const reponse_bases = await axios.get('https://raw.githubusercontent.com/isee4xai/iSeeCases/main/bases.json');
     const bases = reponse_bases.data;
     var base_list = [];
-    for (k in bases){
+    for (k in bases) {
       var base = {
         "key": k,
         "val": bases[k]
@@ -102,13 +102,13 @@ module.exports.getCaseStructure = async (req, res) => {
 
     //AITask keeps the last item
     var ai_tasks = data["settings"]["ai_task"];
-    build_json["http://www.w3id.org/iSeeOnto/explanationexperience#hasDescription"]["http://www.w3id.org/iSeeOnto/explanationexperience#hasAIModel"]["http://www.w3id.org/iSeeOnto/aimodel#solves"]["classes"] = [ai_tasks[ai_tasks.length-1]];
+    build_json["http://www.w3id.org/iSeeOnto/explanationexperience#hasDescription"]["http://www.w3id.org/iSeeOnto/explanationexperience#hasAIModel"]["http://www.w3id.org/iSeeOnto/aimodel#solves"]["classes"] = [ai_tasks[ai_tasks.length - 1]];
 
     //AIMethod:list keeps a list of last items
     var ai_methods = data["settings"]["ai_method"];
     var methods = [];
     ai_methods.forEach(function (method) {
-      methods.push(method[method.length-1]);
+      methods.push(method[method.length - 1]);
     });
     build_json["http://www.w3id.org/iSeeOnto/explanationexperience#hasDescription"]["http://www.w3id.org/iSeeOnto/explanationexperience#hasAIModel"]["http://www.w3id.org/iSeeOnto/explainer#utilises"]["classes"] = methods;
 
@@ -117,73 +117,73 @@ module.exports.getCaseStructure = async (req, res) => {
     // console.log(build_json);
     // Now do persona by persona
     Promise.all(
-     await data.personas.map(async function(persona){
-      await Promise.all(await persona.intents.map(async intent => {
-        // console.log(intent);
-        var new_case = JSON.stringify(build_json)
-        
-        new_case = new_case.replaceAll('<UserGroup>', persona.details.name);
-        new_case = new_case.replaceAll('<Intent>', intent.name);
-        new_case = new_case.replaceAll('<AIKnowledgeLevel>', persona.details.ai_knowledge_level);
-        new_case = new_case.replaceAll('<DomainKnowledgeLevel>', persona.details.domain_knowledge_level);
-        new_case = JSON.parse(new_case);
+      await data.personas.map(async function (persona) {
+        await Promise.all(await persona.intents.map(async intent => {
+          // console.log(intent);
+          var new_case = JSON.stringify(build_json)
 
-        const selected_tree = await Tree.findById(intent.strategy_selected);
+          new_case = new_case.replaceAll('<UserGroup>', persona.details.name);
+          new_case = new_case.replaceAll('<Intent>', intent.name);
+          new_case = new_case.replaceAll('<AIKnowledgeLevel>', persona.details.ai_knowledge_level);
+          new_case = new_case.replaceAll('<DomainKnowledgeLevel>', persona.details.domain_knowledge_level);
+          new_case = JSON.parse(new_case);
 
-        new_case["http://www.w3id.org/iSeeOnto/explanationexperience#hasSolution"] = selected_tree.data
+          const selected_tree = await Tree.findById(intent.strategy_selected);
 
-        var asks  = []
-        intent.questions.forEach(question => {
-          var ask = {...new_case["http://www.w3id.org/iSeeOnto/explanationexperience#hasDescription"]["http://www.w3id.org/iSeeOnto/explanationexperience#hasUserGroup"]["https://purl.org/heals/eo#asks"][0]};
-          ask["http://semanticscience.org/resource/SIO_000300"] = question.text;
-          ask["instance"] = ask["instance"]+"_"+question.id;
-          if (question.target == "https://purl.org/heals/eo#SystemRecommendation"){
-            ask["http://www.w3id.org/iSeeOnto/user#hasQuestionTarget"] = new_case["http://www.w3id.org/iSeeOnto/explanationexperience#hasDescription"]["http://www.w3id.org/iSeeOnto/explanationexperience#hasAIModel"]["http://www.w3id.org/iSeeOnto/aimodel#solves"]["http://semanticscience.org/resource/SIO_000229"][0];
-          }
-          else if (question.target == "https://purl.org/heals/eo#ArtificialIntelligenceMethod"){
-            ask["http://www.w3id.org/iSeeOnto/user#hasQuestionTarget"] = new_case["http://www.w3id.org/iSeeOnto/explanationexperience#hasDescription"]["http://www.w3id.org/iSeeOnto/explanationexperience#hasAIModel"]["http://www.w3id.org/iSeeOnto/explainer#utilises"];
-          }
-          else if (question.target == "http://www.w3id.org/iSeeOnto/aimodel#Dataset"){
-            ask["http://www.w3id.org/iSeeOnto/user#hasQuestionTarget"] = new_case["http://www.w3id.org/iSeeOnto/explanationexperience#hasDescription"]["http://www.w3id.org/iSeeOnto/explanationexperience#hasAIModel"]["http://www.w3id.org/iSeeOnto/aimodel#trainedOn"][0];
-          }
-          asks.push(ask);
-        });
-        new_case["http://www.w3id.org/iSeeOnto/explanationexperience#hasDescription"]["http://www.w3id.org/iSeeOnto/explanationexperience#hasUserGroup"]["https://purl.org/heals/eo#asks"] =  asks;
+          new_case["http://www.w3id.org/iSeeOnto/explanationexperience#hasSolution"] = selected_tree.data
 
-        var evals  = []
-        var index = 0;
-        intent.evaluation.questions.forEach(question => {
-          var ask = {...new_case["http://www.w3id.org/iSeeOnto/explanationexperience#hasOutcome"]["http://linkedu.eu/dedalo/explanationPattern.owl#isBasedOn"][0]};
-          ask["http://www.w3.org/2000/01/rdf-schema#comment"] = question.content;
-          ask["instance"] = ask["instance"]+"_"+question.id;
-          ask["http://www.w3id.org/iSeeOnto/userevaluation#sequenceIndex"] = index++;
-          switch (question.responseType){
-            case "Likert":
-              ask["classes"] = ["http://www.w3id.org/iSeeOnto/userevaluation#Likert_Scale_Question"];
-              break;
-            default:
-              ask["classes"] = ["http://www.w3id.org/iSeeOnto/userevaluation#Likert_Scale_Question"];
-          }
-          ask["http://sensornet.abdn.ac.uk/onts/Qual-O#measures"]["instance"] = question.dimension;
-
-          var ops = [];
-          question.responseOptions.forEach(option=> {
-            var op = {...new_case["http://www.w3id.org/iSeeOnto/explanationexperience#hasOutcome"]["http://linkedu.eu/dedalo/explanationPattern.owl#isBasedOn"][0]["http://www.w3id.org/iSeeOnto/userevaluation#hasResponseOptions"]["http://semanticscience.org/resource/SIO_000974"][0]};
-            op["instance"] = op["instance"]+"_"+option.id;
-            op["https://www.w3id.org/iSeeOnto/BehaviourTree#pair_value_literal"] = option.content;
-            op["https://www.w3id.org/iSeeOnto/BehaviourTree#pairKey"] = option.id;
-            ops.push(op);
+          var asks = []
+          intent.questions.forEach(question => {
+            var ask = { ...new_case["http://www.w3id.org/iSeeOnto/explanationexperience#hasDescription"]["http://www.w3id.org/iSeeOnto/explanationexperience#hasUserGroup"]["https://purl.org/heals/eo#asks"][0] };
+            ask["http://semanticscience.org/resource/SIO_000300"] = question.text;
+            ask["instance"] = ask["instance"] + "_" + question.id;
+            if (question.target == "https://purl.org/heals/eo#SystemRecommendation") {
+              ask["http://www.w3id.org/iSeeOnto/user#hasQuestionTarget"] = new_case["http://www.w3id.org/iSeeOnto/explanationexperience#hasDescription"]["http://www.w3id.org/iSeeOnto/explanationexperience#hasAIModel"]["http://www.w3id.org/iSeeOnto/aimodel#solves"]["http://semanticscience.org/resource/SIO_000229"][0];
+            }
+            else if (question.target == "https://purl.org/heals/eo#ArtificialIntelligenceMethod") {
+              ask["http://www.w3id.org/iSeeOnto/user#hasQuestionTarget"] = new_case["http://www.w3id.org/iSeeOnto/explanationexperience#hasDescription"]["http://www.w3id.org/iSeeOnto/explanationexperience#hasAIModel"]["http://www.w3id.org/iSeeOnto/explainer#utilises"];
+            }
+            else if (question.target == "http://www.w3id.org/iSeeOnto/aimodel#Dataset") {
+              ask["http://www.w3id.org/iSeeOnto/user#hasQuestionTarget"] = new_case["http://www.w3id.org/iSeeOnto/explanationexperience#hasDescription"]["http://www.w3id.org/iSeeOnto/explanationexperience#hasAIModel"]["http://www.w3id.org/iSeeOnto/aimodel#trainedOn"][0];
+            }
+            asks.push(ask);
           });
-          ask["http://www.w3id.org/iSeeOnto/userevaluation#hasResponseOptions"]["http://semanticscience.org/resource/SIO_000974"] = ops;
+          new_case["http://www.w3id.org/iSeeOnto/explanationexperience#hasDescription"]["http://www.w3id.org/iSeeOnto/explanationexperience#hasUserGroup"]["https://purl.org/heals/eo#asks"] = asks;
 
-          evals.push(ask);
-        });
-        new_case["http://www.w3id.org/iSeeOnto/explanationexperience#hasOutcome"]["http://linkedu.eu/dedalo/explanationPattern.owl#isBasedOn"] =  evals; 
-        all_cases.push(new_case);
-      }));
-    })).then(function(){
-      res.json(all_cases);
-    });
+          var evals = []
+          var index = 0;
+          intent.evaluation.questions.forEach(question => {
+            var ask = { ...new_case["http://www.w3id.org/iSeeOnto/explanationexperience#hasOutcome"]["http://linkedu.eu/dedalo/explanationPattern.owl#isBasedOn"][0] };
+            ask["http://www.w3.org/2000/01/rdf-schema#comment"] = question.content;
+            ask["instance"] = ask["instance"] + "_" + question.id;
+            ask["http://www.w3id.org/iSeeOnto/userevaluation#sequenceIndex"] = index++;
+            switch (question.responseType) {
+              case "Likert":
+                ask["classes"] = ["http://www.w3id.org/iSeeOnto/userevaluation#Likert_Scale_Question"];
+                break;
+              default:
+                ask["classes"] = ["http://www.w3id.org/iSeeOnto/userevaluation#Likert_Scale_Question"];
+            }
+            ask["http://sensornet.abdn.ac.uk/onts/Qual-O#measures"]["instance"] = question.dimension;
+
+            var ops = [];
+            question.responseOptions.forEach(option => {
+              var op = { ...new_case["http://www.w3id.org/iSeeOnto/explanationexperience#hasOutcome"]["http://linkedu.eu/dedalo/explanationPattern.owl#isBasedOn"][0]["http://www.w3id.org/iSeeOnto/userevaluation#hasResponseOptions"]["http://semanticscience.org/resource/SIO_000974"][0] };
+              op["instance"] = op["instance"] + "_" + option.id;
+              op["https://www.w3id.org/iSeeOnto/BehaviourTree#pair_value_literal"] = option.content;
+              op["https://www.w3id.org/iSeeOnto/BehaviourTree#pairKey"] = option.id;
+              ops.push(op);
+            });
+            ask["http://www.w3id.org/iSeeOnto/userevaluation#hasResponseOptions"]["http://semanticscience.org/resource/SIO_000974"] = ops;
+
+            evals.push(ask);
+          });
+          new_case["http://www.w3id.org/iSeeOnto/explanationexperience#hasOutcome"]["http://linkedu.eu/dedalo/explanationPattern.owl#isBasedOn"] = evals;
+          all_cases.push(new_case);
+        }));
+      })).then(function () {
+        res.json(all_cases);
+      });
 
   } catch (error) {
     res.status(500).json({ message: error });
