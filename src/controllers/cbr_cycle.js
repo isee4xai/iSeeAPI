@@ -40,7 +40,7 @@ module.exports.query = async (req, res) => {
                     "weight": 1,
                     "unknown": false,
                     "strategy": "Best Match",
-                    "value": usecase.settings.ai_task[0]
+                    "value": usecase.settings.ai_task[usecase.settings.ai_task.length - 1] 
                 },
                 {
                     "name": "AIMethod",
@@ -49,7 +49,7 @@ module.exports.query = async (req, res) => {
                     "weight": 1,
                     "unknown": false,
                     "strategy": "Best Match",
-                    "value": usecase.settings.ai_method[0][0]
+                    "value": usecase.settings.ai_method[0][usecase.settings.ai_method[0].length-1]
                 },
                 {
                     "name": "Portability",
