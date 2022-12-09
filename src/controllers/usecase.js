@@ -250,18 +250,19 @@ module.exports.updateModel = async (req, res) => {
 
     await source_file.mv(path_source)
     await dataset_file.mv(path_dataset)
-    const RAND = ''; // FOR DEV
 
     // Handle Model Upload
     var data_source = new FormData();
     const model_params = {
-      "alias": id + RAND,
-      "backend": 'sklearn',// FUTURE UPDATE
-      "model_task": "classification", // FUTURE UPDATE
-      "dataset_type": "Tabular", // FUTURE UPDATE
+      "alias": id,
+      "backend": 'sklearn',// TODO: FUTURE UPDATE
+      "model_task": "classification", // TODO: FUTURE UPDATE
+      "dataset_type": "Tabular", // TODO: FUTURE UPDATE
       "attributes": JSON.parse(updatedData.attributes)
     }
-    data_source.append('id', id + RAND);
+
+    // console.log(model_params)
+    data_source.append('id', id );
     data_source.append('info', JSON.stringify(model_params));
     data_source.append('file', fs.createReadStream(path_source));
 
@@ -291,7 +292,7 @@ module.exports.updateModel = async (req, res) => {
     console.log(response.data)
     // Handle Dataset Upload
     var data_dataset = new FormData();
-    data_dataset.append('id', id + RAND);
+    data_dataset.append('id', id);
     data_dataset.append('file', fs.createReadStream(path_dataset));
 
     var upload_dataset = {
