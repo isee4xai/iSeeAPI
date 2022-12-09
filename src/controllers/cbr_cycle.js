@@ -205,6 +205,7 @@ module.exports.query = async (req, res) => {
         });
 
         selected_intent.strategies = strategies
+        selected_intent.strategy_selected = false
         persona.intents[intentIndex] = selected_intent;
 
         const save = await usecase.save();
