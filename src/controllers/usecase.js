@@ -469,6 +469,38 @@ module.exports.getExplainerResponse = async (req, res) => {
   }
 }
 
+module.exports.getModelPredictResponse = async (req, res) => {
+  try {
+    let data = new FormData();
+
+    data.append('id', req.params.id);
+    data.append('instance', JSON.stringify(req.body.instance));
+
+    const usecase = await Usecase.findById(req.params.id)
+
+    let config = {
+      method: 'post',
+      url: MODELAPI_URL + 'predict',
+      headers: {
+        ...data.getHeaders()
+      },
+      data: data
+    };
+
+    const response = await axios(config);
+    const model_attributes = JSON.parse(usecase.model.attributes)
+    let output = response.data.predictions[0];
+    let target_values = model_attributes.target_values[0]
+
+    let d = {}
+    for (var i = 0; i < target_values.length; i++){
+      d[target_values[i]] = output[i];
+    }
+    res.json(d);
+  } catch (error) {
+    res.status(500).json({ message: error });
+  }
+}
 
 function generateRandom(maxLimit = 100) {
   let rand = Math.random() * maxLimit;

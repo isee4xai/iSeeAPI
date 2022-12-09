@@ -22,6 +22,8 @@ router.get('/:id', [isCompanyUsecase], usecasectrl.get);
 router.get('/:id/casestructure', [isCompanyUsecase], usecasectrl.getCaseStructure);
 router.get('/:id/sampleDataInstance', [isCompanyUsecase], usecasectrl.getRandomDataInstance);
 router.post('/:id/explainerResponse', [isCompanyUsecase], usecasectrl.getExplainerResponse);
+router.post('/:id/predictResponse', [isCompanyUsecase], usecasectrl.getModelPredictResponse);
+
 
 // Get all
 router.get('/', usecasectrl.list);
