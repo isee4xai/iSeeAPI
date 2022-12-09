@@ -398,22 +398,40 @@ module.exports.getRandomDataInstance = async (req, res) => {
 
     var config = {
       method: 'GET',
-      url: MODELAPI_URL + 'num_instances/'+ req.params.id,
-      headers: { }
+      url: MODELAPI_URL + 'num_instances/' + req.params.id,
+      headers: {}
     };
-    
+
     let response = await axios(config)
     const num_instances = response.data;
     const rand_index = generateRandom(num_instances);
 
     var config = {
       method: 'GET',
-      url: MODELAPI_URL + 'instance/'+ req.params.id+'/'+rand_index,
-      headers: { }
+      url: MODELAPI_URL + 'instance/' + req.params.id + '/' + rand_index,
+      headers: {}
     };
-    
+
     let response_sample = await axios(config)
-    const sample = response_sample.data[0];
+
+    var config = {
+      method: 'GET',
+      url: MODELAPI_URL + 'instanceJSON/' + req.params.id + '/' + rand_index,
+      headers: {}
+    };
+
+    let response_json_instance = await axios(config);
+    var html = '<table class="table-features"><tbody><tr><th>Name</th><th>Value</th></tr>';
+
+    for (k in response_json_instance.data) {
+      html += '<tr class="info">';
+      html += '<td>' + k + '</td>';
+      html += '<td>' + response_json_instance.data[k] + '</td>';
+      html += '</tr>';
+    }
+    html += '</tbody></table>';
+
+    const sample = { "instance": response_sample.data[0], "json": response_json_instance.data, "html": html };
     res.json(sample);
   } catch (error) {
     res.status(500).json({ message: error });
@@ -426,17 +444,17 @@ module.exports.getExplainerResponse = async (req, res) => {
 
     data.append('id', req.params.id);
     data.append('instance', JSON.stringify(req.body.instance));
-    if(req.body.params){
+    if (req.body.params) {
       data.append('params', JSON.stringify(req.body.params));
     }
     const explainer_method = req.body.method
     let config = {
       method: 'post',
-      url: EXPLAINERAPI_URL+explainer_method,
-      headers: { 
+      url: EXPLAINERAPI_URL + explainer_method,
+      headers: {
         ...data.getHeaders()
       },
-      data : data
+      data: data
     };
     console.log(config)
 
@@ -452,9 +470,9 @@ module.exports.getExplainerResponse = async (req, res) => {
 }
 
 
-function generateRandom(maxLimit = 100){
+function generateRandom(maxLimit = 100) {
   let rand = Math.random() * maxLimit;
   rand = Math.floor(rand);
-  return rand ;
+  return rand;
 }
 /////////////////////////////////////////////////////////////////////////
