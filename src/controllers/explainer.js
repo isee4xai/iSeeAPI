@@ -25,3 +25,20 @@ module.exports.getMeta = async (req, res) => {
     }
 }
 
+module.exports.create = async (req, res) => {
+    try {
+
+        const config = {
+            data: req.body,
+            ISEE_ADMIN_KEY: process.env.ISEE_ADMIN_KEY
+        }
+
+        const response = await axios.post(ONTOAPI_URL + '/explainer/insert', config)
+        res.json(response.data)
+    }
+    catch (error) {
+        res.status(500).json({ message: error.message })
+    }
+}
+
+
