@@ -10,7 +10,7 @@ const catchAuth = (err, res) => {
     if (err instanceof TokenExpiredError) {
       return res.status(401).send({ message: "Unauthorized! Please check your Access Token!" });
     }
-    return res.sendStatus(401).send({ message: "Unauthorized API Call!" });
+    return res.status(401).send({ message: "Unauthorized API Call! You need to be logged in to access this resource" });
   }
 
 verifyToken = (req, res, next) => {
