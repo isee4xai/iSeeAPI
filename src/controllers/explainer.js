@@ -32,8 +32,10 @@ module.exports.create = async (req, res) => {
             data: req.body,
             ISEE_ADMIN_KEY: process.env.ISEE_ADMIN_KEY
         }
+        console.log("[INFO] Adding New Explainer Method");
+        const response = await axios.post(ONTOAPI_URL + 'explainers/insert', config)
+        console.log("[INFO] Response -",response.data);
 
-        const response = await axios.post(ONTOAPI_URL + 'explainer/insert', config)
         res.json(response.data)
     }
     catch (error) {
