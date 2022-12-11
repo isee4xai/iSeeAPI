@@ -33,7 +33,7 @@ module.exports.create = async (req, res) => {
             ISEE_ADMIN_KEY: process.env.ISEE_ADMIN_KEY
         }
 
-        const response = await axios.post(ONTOAPI_URL + '/explainer/insert', config)
+        const response = await axios.post(ONTOAPI_URL + 'explainer/insert', config)
         res.json(response.data)
     }
     catch (error) {
