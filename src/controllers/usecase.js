@@ -287,6 +287,8 @@ module.exports.updateModel = async (req, res) => {
     var upload_source = {
       method: method,
       url: MODELAPI_URL + 'upload_model',
+      'maxContentLength': Infinity,
+      'maxBodyLength': Infinity,
       headers: {
         'Accept': '*/*',
         'Accept-Language': 'en-US,en;q=0.9',
@@ -308,6 +310,8 @@ module.exports.updateModel = async (req, res) => {
     var upload_dataset = {
       method: 'post',
       url: MODELAPI_URL + 'dataset',
+      'maxContentLength': Infinity,
+      'maxBodyLength': Infinity,
       headers: {
         ...data_dataset.getHeaders()
       },
