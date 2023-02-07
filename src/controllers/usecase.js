@@ -409,24 +409,10 @@ module.exports.getRandomDataInstance = async (req, res) => {
 
     let response_sample = await axios(config)
 
-    var config = {
-      method: 'GET',
-      url: MODELAPI_URL + 'instanceJSON/' + req.params.id + '/' + rand_index,
-      headers: {}
-    };
+    // For Image Data
+    let url = response_sample.data.url;
 
-    let response_json_instance = await axios(config);
-    var html = '<table class="table-features"><tbody><tr><th>Name</th><th>Value</th></tr>';
-
-    for (k in response_json_instance.data) {
-      html += '<tr class="info">';
-      html += '<td>' + k + '</td>';
-      html += '<td>' + response_json_instance.data[k] + '</td>';
-      html += '</tr>';
-    }
-    html += '</tbody></table>';
-
-    const sample = { "instance": response_sample.data[0], "json": response_json_instance.data, "html": html };
+    const sample = { "instance": url  };
     res.json(sample);
   } catch (error) {
     res.status(500).json({ message: error });
