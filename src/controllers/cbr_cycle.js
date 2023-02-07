@@ -185,6 +185,11 @@ module.exports.query = async (req, res) => {
 
             let s = {
                 name: strategy.Name,
+                dataset_type: strategy.DatasetType,
+                ai_task: strategy.AITask,
+                ai_method: strategy.AIMethod,
+                ai_knowledge_level: strategy.AIKnowledgeLevel,
+                domain_knowledge_level: strategy.DomainKnowledgeLevel,
                 score__: strategy.score__,
                 percentage: ((strategy.score__) / NUM_QUERY_FIELDS * 100).toFixed(2),
                 match_explanation: strategy.match_explanation,
@@ -203,6 +208,13 @@ module.exports.query = async (req, res) => {
             if (keyA > keyB) return -1;
             return 0;
         });
+
+        let index = 1;
+        strategies.forEach( strat=> {
+            strat.name = "Strategy "+index;
+            strat.index = index;
+            index ++;
+        })
 
         selected_intent.strategies = strategies
         selected_intent.strategy_selected = false
