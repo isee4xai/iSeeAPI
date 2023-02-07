@@ -261,13 +261,18 @@ module.exports.updateModel = async (req, res) => {
     await source_file.mv(path_source)
     await dataset_file.mv(path_dataset)
 
+    // FUTURE IMPROVEMENTS: Parse iSee Data to ML Lib Format
+    let ai_task =  req.body.ai_task.split("#")[1];
+    let dataset_type =  req.body.dataset_type.split("#")[1];
+    let backend =  req.body.backend.split("#")[1].toLowerCase();
+
     // Handle Model Upload
     var data_source = new FormData();
     const model_params = {
       "alias": id,
-      "backend": 'sklearn',// TODO: FUTURE UPDATE
-      "model_task": "classification", // TODO: FUTURE UPDATE
-      "dataset_type": "Tabular", // TODO: FUTURE UPDATE
+      "backend": backend,
+      "model_task": ai_task,
+      "dataset_type": dataset_type,
       "attributes": JSON.parse(updatedData.attributes)
     }
 
