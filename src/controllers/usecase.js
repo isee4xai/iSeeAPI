@@ -3,6 +3,9 @@ const Tree = require("../models/tree");
 const axios = require('axios');
 var FormData = require('form-data');
 var fs = require('fs');
+var Https = require('https');
+const { v4 } = require("uuid");
+
 const MODELAPI_URL = process.env.MODELAPI_URL;
 const EXPLAINERAPI_URL = process.env.EXPLAINERAPI_URL;
 
@@ -452,32 +455,45 @@ module.exports.getExplainerResponse = async (req, res) => {
 
 module.exports.getModelPredictResponse = async (req, res) => {
   try {
-    let data = new FormData();
-
-    data.append('id', req.params.id);
-    data.append('instance', JSON.stringify(req.body.instance));
-
     const usecase = await Usecase.findById(req.params.id)
 
-    let config = {
+    // FOR IMAGE DATA
+    // Download image as Temporary file and append to predict API
+    const temp_download = __dirname+'/tmp/'+v4()+".png";
+    const instance_url = req.body.instance;
+    await downloadFile(instance_url, temp_download);
+
+    // Handle Instance Predict
+    var req_dataset = new FormData();
+    req_dataset.append('id', req.params.id);
+    req_dataset.append('top_classes', req.body.top_classes);
+    req_dataset.append('file', fs.createReadStream(temp_download));
+  
+    var config = {
       method: 'post',
       url: MODELAPI_URL + 'predict',
       headers: {
-        ...data.getHeaders()
+        ...req_dataset.getHeaders()
       },
-      data: data
+      data: req_dataset
     };
+  
+    const response_predict = await axios(config);
+    console.log(response_predict.data);
+  
+    fs.unlink(temp_download, function () {
+      console.log("temp_download File was deleted")
+    });
 
-    const response = await axios(config);
-    const model_attributes = JSON.parse(usecase.model.attributes)
-    let output = response.data.predictions[0];
-    let target_values = model_attributes.target_values[0]
+    // const model_attributes = JSON.parse(usecase.model.attributes)
+    // let output = response.data.predictions[0];
+    // let target_values = model_attributes.target_values[0]
 
-    let d = {}
-    for (var i = 0; i < target_values.length; i++){
-      d[target_values[i]] = output[i];
-    }
-    res.json(d);
+    // let d = {}
+    // for (var i = 0; i < target_values.length; i++){
+    //   d[target_values[i]] = output[i];
+    // }
+    res.json(response.data);
   } catch (error) {
     res.status(500).json({ message: error });
   }
@@ -488,4 +504,29 @@ function generateRandom(maxLimit = 100) {
   rand = Math.floor(rand);
   return rand;
 }
+
+async function downloadFile (url, targetFile) {  
+  return await new Promise((resolve, reject) => {
+    Https.get(url, response => {
+      const code = response.statusCode ?? 0
+      if (code >= 400) {
+        return reject(new Error(response.statusMessage))
+      }
+      if (code > 300 && code < 400 && !!response.headers.location) {
+        return resolve(
+          downloadFile(response.headers.location, targetFile)
+        )
+      }
+      const fileWriter = fs
+        .createWriteStream(targetFile)
+        .on('finish', () => {
+          resolve({})
+        })
+      response.pipe(fileWriter)
+    }).on('error', error => {
+      reject(error)
+    })
+  })
+}
+
 /////////////////////////////////////////////////////////////////////////
