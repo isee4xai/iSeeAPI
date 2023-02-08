@@ -265,9 +265,9 @@ module.exports.updateModel = async (req, res) => {
     await dataset_file.mv(path_dataset)
 
     // FUTURE IMPROVEMENTS: Parse iSee Data to ML Lib Format
-    let ai_task =  req.body.ai_task.split("#")[1];
-    let dataset_type =  req.body.dataset_type.split("#")[1];
-    let backend =  req.body.backend.split("#")[1].toLowerCase();
+    let ai_task = req.body.ai_task.split("#")[1];
+    let dataset_type = req.body.dataset_type.split("#")[1];
+    let backend = req.body.backend.split("#")[1].toLowerCase();
 
     // Handle Model Upload
     var data_source = new FormData();
@@ -415,7 +415,7 @@ module.exports.getRandomDataInstance = async (req, res) => {
     // For Image Data
     let url = response_sample.data.url;
 
-    const sample = { "instance": url  };
+    const sample = { "instance": url };
     res.json(sample);
   } catch (error) {
     res.status(500).json({ message: error });
@@ -424,26 +424,43 @@ module.exports.getRandomDataInstance = async (req, res) => {
 
 module.exports.getExplainerResponse = async (req, res) => {
   try {
-    let data = new FormData();
 
-    data.append('id', req.params.id);
-    data.append('instance', JSON.stringify(req.body.instance));
+    // FOR IMAGE DATA
+    // Download image as Temporary file and append to predict API
+    const temp_download = __dirname + '/tmp/' + v4() + ".png";
+    console.log("Explainer Predict API")
+    console.log(req.body)
+
+    const instance_url = req.body.instance;
+    await downloadFile(instance_url, temp_download);
+
+    // Handle Instance Predict
+    var req_dataset = new FormData();
+    req_dataset.append('id', req.params.id);
+    req_dataset.append('image', fs.createReadStream(temp_download));
     if (req.body.params) {
       data.append('params', JSON.stringify(req.body.params));
     }
+
     const explainer_method = req.body.method
-    let config = {
+
+    var config = {
       method: 'post',
       url: EXPLAINERAPI_URL + explainer_method,
       headers: {
-        ...data.getHeaders()
+        ...req_dataset.getHeaders()
       },
-      data: data
+      data: req_dataset
     };
-    console.log(config)
 
-    const response = await axios(config);
-    let output = response.data;
+    const response_predict = await axios(config);
+    console.log(response_predict.data);
+
+    fs.unlink(temp_download, function () {
+      console.log("temp_download File was deleted")
+    });
+
+    let output = response_predict.data;
     const meta = await axios.get(EXPLAINERAPI_URL + '/' + explainer_method)
     output.meta = meta.data
     console.log(output)
@@ -459,7 +476,7 @@ module.exports.getModelPredictResponse = async (req, res) => {
 
     // FOR IMAGE DATA
     // Download image as Temporary file and append to predict API
-    const temp_download = __dirname+'/tmp/'+v4()+".png";
+    const temp_download = __dirname + '/tmp/' + v4() + ".png";
     console.log("Mode Predict API")
     console.log(req.body)
     console.log(req.body.instance)
@@ -472,7 +489,7 @@ module.exports.getModelPredictResponse = async (req, res) => {
     req_dataset.append('id', req.params.id);
     req_dataset.append('top_classes', req.body.top_classes);
     req_dataset.append('image', fs.createReadStream(temp_download));
-  
+
     var config = {
       method: 'post',
       url: MODELAPI_URL + 'predict',
@@ -481,10 +498,10 @@ module.exports.getModelPredictResponse = async (req, res) => {
       },
       data: req_dataset
     };
-  
+
     const response_predict = await axios(config);
     console.log(response_predict.data);
-  
+
     fs.unlink(temp_download, function () {
       console.log("temp_download File was deleted")
     });
@@ -509,7 +526,7 @@ function generateRandom(maxLimit = 100) {
   return rand;
 }
 
-async function downloadFile (url, targetFile) {  
+async function downloadFile(url, targetFile) {
   return await new Promise((resolve, reject) => {
     Https.get(url, response => {
       const code = response.statusCode ?? 0
