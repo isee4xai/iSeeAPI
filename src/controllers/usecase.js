@@ -471,7 +471,7 @@ module.exports.getModelPredictResponse = async (req, res) => {
     var req_dataset = new FormData();
     req_dataset.append('id', req.params.id);
     req_dataset.append('top_classes', req.body.top_classes);
-    req_dataset.append('file', fs.createReadStream(temp_download));
+    req_dataset.append('image', fs.createReadStream(temp_download));
   
     var config = {
       method: 'post',
