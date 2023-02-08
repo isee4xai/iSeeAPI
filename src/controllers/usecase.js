@@ -493,7 +493,7 @@ module.exports.getModelPredictResponse = async (req, res) => {
     // for (var i = 0; i < target_values.length; i++){
     //   d[target_values[i]] = output[i];
     // }
-    res.json(response.data);
+    res.json(response_predict.data);
   } catch (error) {
     res.status(500).json({ message: error });
   }
