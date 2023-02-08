@@ -461,8 +461,8 @@ module.exports.getModelPredictResponse = async (req, res) => {
     // Download image as Temporary file and append to predict API
     const temp_download = __dirname+'/tmp/'+v4()+".png";
     console.log("Mode Predict API")
-    console.loog(req.body)
-    console.loog(req.body.instance)
+    console.log(req.body)
+    console.log(req.body.instance)
 
     const instance_url = req.body.instance;
     await downloadFile(instance_url, temp_download);
