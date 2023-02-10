@@ -265,7 +265,7 @@ module.exports.updateModel = async (req, res) => {
     await dataset_file.mv(path_dataset)
 
     // FUTURE IMPROVEMENTS: Parse iSee Data to ML Lib Format
-    let ai_task = req.body.ai_task.split("#")[1];
+    let ai_task = req.body.ai_tasks[ai_tasks.length - 1].split("#")[1];
     let dataset_type = req.body.dataset_type.split("#")[1];
     let backend = req.body.backend.split("#")[1].toLowerCase();
 
