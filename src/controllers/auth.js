@@ -109,6 +109,69 @@ module.exports.admin_add_user = async (req, res) => {
 
 }
 
+module.exports.admin_all_usecases = async (req, res) => {
+    if (req.body.ISEE_ADMIN_KEY == process.env.ISEE_ADMIN_KEY) {
+        try {
+            const data = await Usecase.find({});
+            res.json(data)
+        }
+        catch (error) {
+            res.status(500).json({ message: error.message })
+        }
+    } else {
+        console.log("Unauth access");
+        res.status(400).json({ message: "unauth" })
+    }
+}
+
+module.exports.admin_change_usecase_ownership = async (req, res) => {
+    if (req.body.ISEE_ADMIN_KEY == process.env.ISEE_ADMIN_KEY) {
+        try {
+            const id = req.body.usecase;
+            const updatedData = { "company": req.body.company };
+            const options = { new: false };
+
+            const result = await Usecase.findByIdAndUpdate(id, updatedData, options);
+            if (result) {
+                res.send(result);
+            } else {
+                res.status(404).json({ message: "Usecase not found" });
+            }
+        } catch (error) {
+            console.log(error)
+            res.status(400).json({ message: error.message })
+        }
+    } else {
+        console.log("Unauth access");
+        res.status(400).json({ message: "unauth" })
+    }
+}
+
+module.exports.admin_change_user_company = async (req, res) => {
+    if (req.body.ISEE_ADMIN_KEY == process.env.ISEE_ADMIN_KEY) {
+        try {
+            const id = req.body.user;
+            const updatedData = { "company": req.body.company };
+            const options = { new: false };
+
+            const result = await User.findByIdAndUpdate(id, updatedData, options);
+            if (result) {
+                res.send(result);
+            } else {
+                res.status(404).json({ message: "User not found" });
+            }
+        } catch (error) {
+            console.log(error)
+            res.status(400).json({ message: error.message })
+        }
+    } else {
+        console.log("Unauth access");
+        res.status(400).json({ message: "unauth" })
+    }
+}
+
+
+
 
 module.exports.login = async (req, res) => {
     try {
