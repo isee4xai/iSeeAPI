@@ -1,5 +1,5 @@
 ### iSee Core API
-<a href="https://zenodo.org/badge/latestdoi/500399706"><img src="https://zenodo.org/badge/500399706.svg" alt="DOI"></a>
+<a href="https://doi.org/10.5281/zenodo.7696125"><img src="https://zenodo.org/badge/500399706.svg" alt="DOI"></a>
 
 🚧 Under Construction 🚧
 
