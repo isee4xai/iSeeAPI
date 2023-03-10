@@ -1,6 +1,8 @@
 ### iSee Core API
 <a href="https://doi.org/10.5281/zenodo.7696124"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.7696124.svg" alt="DOI"></a>
 
+The iSee API serves as the backbone of the entire iSee Platform, expertly managing core integrations with other iSee Services. It is also responsible for handling the logic necessary for the smooth operation of the iSee Cockpit, while simultaneously maintaining the database layer.
+
 🚧 Under Construction 🚧
 
 ### Endpoints Available
