@@ -65,6 +65,11 @@ module.exports.getCaseStructure = async (req, res) => {
         "sub": ""
       },
       {
+        "key": "<Domain>",
+        "val": "domain",
+        "sub": ""
+      },
+      {
         "key": "<Dataset_Feature_Quantity_Range>",
         "val": "num_features",
         "sub": "settings"
