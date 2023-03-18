@@ -109,7 +109,6 @@ module.exports.getCaseStructure = async (req, res) => {
 
     build_json = JSON.parse(build_json);
 
-
     //AITask keeps the last item
     var ai_tasks = data["settings"]["ai_task"];
     build_json["http://www.w3id.org/iSeeOnto/explanationexperience#hasDescription"]["http://www.w3id.org/iSeeOnto/explanationexperience#hasAIModel"]["http://www.w3id.org/iSeeOnto/aimodel#solves"]["classes"] = [ai_tasks[ai_tasks.length - 1]];
@@ -122,7 +121,18 @@ module.exports.getCaseStructure = async (req, res) => {
     });
     build_json["http://www.w3id.org/iSeeOnto/explanationexperience#hasDescription"]["http://www.w3id.org/iSeeOnto/explanationexperience#hasAIModel"]["http://www.w3id.org/iSeeOnto/explainer#utilises"]["classes"] = methods;
 
-    // AIModelAssessements todo once 
+    //AI Model assessments
+    var aievals = data["settings"]["assessments"];
+    let assessments = [];
+    aievals.forEach((option, i) => {
+      let op = { ...build_json["http://www.w3id.org/iSeeOnto/explanationexperience#hasDescription"]["http://www.w3id.org/iSeeOnto/explanationexperience#hasAIModel"]["http://www.w3id.org/iSeeOnto/evaluation#annotatedBy"][0] };
+      op["instance"] = op["instance"] + "_" + i;
+      op["http://sensornet.abdn.ac.uk/onts/Qual-O#basedOn"] = option.assesment_type;
+      op["http://www.w3.org/ns/prov#value"]["value"] = option.assesment_val;
+      assessments.push(op);
+    });
+    build_json["http://www.w3id.org/iSeeOnto/explanationexperience#hasDescription"]["http://www.w3id.org/iSeeOnto/explanationexperience#hasAIModel"]["http://www.w3id.org/iSeeOnto/evaluation#annotatedBy"] = assessments;
+
     var all_cases = []
     // console.log(build_json);
     // Now do persona by persona
