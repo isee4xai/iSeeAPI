@@ -128,7 +128,9 @@ module.exports.getCaseStructure = async (req, res) => {
       let op = { ...build_json["http://www.w3id.org/iSeeOnto/explanationexperience#hasDescription"]["http://www.w3id.org/iSeeOnto/explanationexperience#hasAIModel"]["http://www.w3id.org/iSeeOnto/evaluation#annotatedBy"][0] };
       op["instance"] = op["instance"] + "_" + i;
       op["http://sensornet.abdn.ac.uk/onts/Qual-O#basedOn"] = option.assesment_type;
-      op["http://www.w3.org/ns/prov#value"]["value"] = option.assesment_val;
+      temp = {...op["http://www.w3.org/ns/prov#value"]};
+      temp["value"] = option.assesment_val;
+      op["http://www.w3.org/ns/prov#value"] = temp;
       assessments.push(op);
     });
     build_json["http://www.w3id.org/iSeeOnto/explanationexperience#hasDescription"]["http://www.w3id.org/iSeeOnto/explanationexperience#hasAIModel"]["http://www.w3id.org/iSeeOnto/evaluation#annotatedBy"] = assessments;
