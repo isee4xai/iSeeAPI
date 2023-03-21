@@ -263,11 +263,13 @@ module.exports.updateModel = async (req, res) => {
     const id = req.params.id;
     const options = { new: true };
 
+    const usecase = await Usecase.findById(req.params.id);
+
     let updatedData = {
       mode: req.body.mode,
       backend: req.body.backend,
-      attributes: req.body.attributes,
-      completed: req.body.completed,
+      attributes: JSON.parse(req.body.attributes),
+      completed: usecase.model.completed,
       source_file: '',
       dataset_file: ''
     }
@@ -282,9 +284,12 @@ module.exports.updateModel = async (req, res) => {
     await dataset_file.mv(path_dataset)
 
     // FUTURE IMPROVEMENTS: Parse iSee Data to ML Lib Format
-    let ai_task = req.body.ai_tasks[ai_tasks.length - 1].split("#")[1];
-    let dataset_type = req.body.dataset_type.split("#")[1];
-    let backend = req.body.backend.split("#")[1].toLowerCase();
+    let ai_task = usecase.settings.ai_task[usecase.settings.ai_task.length - 1];
+    let dataset_type = usecase.settings.dataset_type;
+    let backend = req.body.backend;
+
+    // console.log(JSON.stringify(convert_attributes(updatedData.attributes)))
+    // return false;
 
     // Handle Model Upload
     var data_source = new FormData();
@@ -293,21 +298,25 @@ module.exports.updateModel = async (req, res) => {
       "backend": backend,
       "model_task": ai_task,
       "dataset_type": dataset_type,
-      "attributes": JSON.parse(updatedData.attributes)
+      "attributes": convert_attributes(updatedData.attributes)
     }
 
-    // console.log(model_params)
+    console.log("------- model_params ------")
+    console.log(model_params)
+
     data_source.append('id', id);
     data_source.append('info', JSON.stringify(model_params));
     data_source.append('file', fs.createReadStream(path_source));
 
     // console.log(data_source)
     let method = "POST";
+    // console.log(updatedData.completed)
 
-    if (updatedData.completed == 'true') {
-      console.log(updatedData.completed)
-      method = "PUT";
-    }
+    // TODO: Fix the capability to update
+    // if (updatedData.completed) {
+    //   console.log(updatedData.completed)
+    //   method = "PUT";
+    // }
 
     var upload_source = {
       method: method,
@@ -365,6 +374,58 @@ module.exports.updateModel = async (req, res) => {
     console.log(error)
     res.status(400).json({ message: error.message })
   }
+}
+
+// Build the object to support the iSee Model Hub API Spec
+function convert_attributes(attr) {
+  let attributes = { target_names: [], features: {} }
+
+  attr.forEach(function (a) {
+    let feature = { data_type: a.datatype }
+
+    // Push if a target feature
+    if (a.target) {
+      attributes.target_names.push(a.name);
+    }
+
+    if (a.datatype == "numerical") {
+      feature.min = parseFloat(a.min)
+      feature.max = parseFloat(a.max)
+      feature.min_raw = parseFloat(a.min_raw)
+      feature.max_raw = parseFloat(a.max_raw)
+    }
+
+    if (a.datatype == "image") {
+      if (a.name == "image_zip") {
+        feature.mean_raw = parseFloat(a.mean_raw)
+        feature.std_raw = parseFloat(a.std_raw)
+      }
+      // Shape Conversion
+      feature.shape = a.shape.split(/,/).map(parseFloat)
+      feature.shape_raw = a.shape_raw.split(/,/).map(parseFloat)
+
+      feature.min = parseFloat(a.min)
+      feature.max = parseFloat(a.max)
+      feature.min_raw = parseFloat(a.min_raw)
+      feature.max_raw = parseFloat(a.max_raw)
+    }
+
+    if (a.datatype == "categorical") {
+      let cat_values = []
+      let cat_values_raw = []
+
+      a.values.forEach(function (val) {
+        cat_values.push(parseFloat(val.value))
+        cat_values_raw.push(val.raw)
+      })
+
+      feature.values = cat_values
+      feature.values_raw = cat_values_raw
+    }
+
+    attributes.features[a.name] = feature
+  })
+  return attributes;
 }
 
 module.exports.list = async (req, res) => {
