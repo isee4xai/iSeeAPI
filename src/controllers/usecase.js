@@ -128,7 +128,7 @@ module.exports.getCaseStructure = async (req, res) => {
       let op = { ...build_json["http://www.w3id.org/iSeeOnto/explanationexperience#hasDescription"]["http://www.w3id.org/iSeeOnto/explanationexperience#hasAIModel"]["http://www.w3id.org/iSeeOnto/evaluation#annotatedBy"][0] };
       op["instance"] = op["instance"] + "_" + i;
       op["http://sensornet.abdn.ac.uk/onts/Qual-O#basedOn"] = option.assesment_type;
-      temp = {...op["http://www.w3.org/ns/prov#value"]};
+      temp = { ...op["http://www.w3.org/ns/prov#value"] };
       temp["value"] = option.assesment_val;
       op["http://www.w3.org/ns/prov#value"] = temp;
       assessments.push(op);
@@ -425,7 +425,7 @@ function convert_attributes(attr) {
 
     if (a.datatype == "image") {
       attributes.features["image"] = feature
-    }else{
+    } else {
       attributes.features[a.name] = feature
     }
   })
@@ -508,7 +508,7 @@ module.exports.getDatasetCount = async (req, res) => {
       url: MODELAPI_URL + 'num_instances/' + req.params.id,
       headers: {}
     };
-    
+
     let response = await axios(config)
     res.json(response.data);
   } catch (error) {
@@ -516,7 +516,71 @@ module.exports.getDatasetCount = async (req, res) => {
   }
 }
 
+module.exports.getModelPredictResponse = async (req, res) => {
+  try {
+
+    const instance_body = req.body.instance;
+    const top_classes = req.body.top_classes
+    console.log("getModelPredictResponse - "+req.params.id);
+
+    var config = {
+      method: 'post',
+      url: MODELAPI_URL + 'predict',
+      headers: { 
+        'Content-Type': 'application/json'
+      },
+      maxBodyLength: Infinity,
+      data: {
+        type: instance_body.type,
+        id: req.params.id,
+        top_classes: top_classes,
+        instance: instance_body.instance
+      }
+    };
+
+    const response_predict = await axios(config);
+    let output = response_predict.data;
+    res.json(output);
+  } catch (error) {
+    res.status(500).json({ message: error });
+  }
+}
+
 module.exports.getExplainerResponse = async (req, res) => {
+  try {
+
+    const instance_body = req.body.instance;
+    const explainer_method = req.body.method
+    console.log("getExplainerResponse - "+explainer_method);
+
+    var config = {
+      method: 'post',
+      url: EXPLAINERAPI_URL + explainer_method,
+      headers: { 
+        'Content-Type': 'application/json'
+      },
+      maxBodyLength: Infinity,
+      data: {
+        type: instance_body.type,
+        id: req.params.id,
+        instance: instance_body.instance
+      }
+    };
+
+    const response_predict = await axios(config);
+    console.log(response_predict.data);
+
+    let output = response_predict.data;
+    const meta = await axios.get(EXPLAINERAPI_URL + '/' + explainer_method)
+    output.meta = meta.data
+    console.log(output)
+    res.json(output);
+  } catch (error) {
+    res.status(500).json({ message: error });
+  }
+}
+
+module.exports.getExplainerResponseOld = async (req, res) => {
   try {
 
     // FOR IMAGE DATA
@@ -564,7 +628,7 @@ module.exports.getExplainerResponse = async (req, res) => {
   }
 }
 
-module.exports.getModelPredictResponse = async (req, res) => {
+module.exports.getModelPredictResponseOld = async (req, res) => {
   try {
     const usecase = await Usecase.findById(req.params.id)
 
