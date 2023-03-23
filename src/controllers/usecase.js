@@ -33,8 +33,18 @@ module.exports.get = async (req, res) => {
 };
 
 module.exports.getCaseStructure = async (req, res) => {
+  const cases = await computeCaseStructure(req.params.id)
+  if (cases) {
+    res.json(cases)
+  } else {
+    res.status(500).json({ message: "Incomplete Usecase. Make sure to complete all the sections before generating the case structure!" });
+  }
+};
+
+
+async function computeCaseStructure(usecaseId) {
   try {
-    const data = await Usecase.findById(req.params.id);
+    const data = await Usecase.findById(usecaseId);
     const response = await axios.get('https://raw.githubusercontent.com/isee4xai/iSeeCases/main/case-structure.json');
     const casestructure = response.data;
     var build_json = JSON.stringify(casestructure);
@@ -124,21 +134,23 @@ module.exports.getCaseStructure = async (req, res) => {
     //AI Model assessments
     var aievals = data["settings"]["assessments"];
     let assessments = [];
-    aievals.forEach((option, i) => {
-      let op = { ...build_json["http://www.w3id.org/iSeeOnto/explanationexperience#hasDescription"]["http://www.w3id.org/iSeeOnto/explanationexperience#hasAIModel"]["http://www.w3id.org/iSeeOnto/evaluation#annotatedBy"][0] };
-      op["instance"] = op["instance"] + "_" + i;
-      op["http://sensornet.abdn.ac.uk/onts/Qual-O#basedOn"] = option.assesment_type;
-      temp = { ...op["http://www.w3.org/ns/prov#value"] };
-      temp["value"] = option.assesment_val;
-      op["http://www.w3.org/ns/prov#value"] = temp;
-      assessments.push(op);
-    });
+    if (aievals) {
+      aievals.forEach((option, i) => {
+        let op = { ...build_json["http://www.w3id.org/iSeeOnto/explanationexperience#hasDescription"]["http://www.w3id.org/iSeeOnto/explanationexperience#hasAIModel"]["http://www.w3id.org/iSeeOnto/evaluation#annotatedBy"][0] };
+        op["instance"] = op["instance"] + "_" + i;
+        op["http://sensornet.abdn.ac.uk/onts/Qual-O#basedOn"] = option.assesment_type;
+        temp = { ...op["http://www.w3.org/ns/prov#value"] };
+        temp["value"] = option.assesment_val;
+        op["http://www.w3.org/ns/prov#value"] = temp;
+        assessments.push(op);
+      });
+    }
+
     build_json["http://www.w3id.org/iSeeOnto/explanationexperience#hasDescription"]["http://www.w3id.org/iSeeOnto/explanationexperience#hasAIModel"]["http://www.w3id.org/iSeeOnto/evaluation#annotatedBy"] = assessments;
 
     var all_cases = []
-    // console.log(build_json);
     // Now do persona by persona
-    Promise.all(
+    const all_mapping = await Promise.all(
       await data.personas.map(async function (persona) {
         await Promise.all(await persona.intents.map(async intent => {
           // console.log(intent);
@@ -211,14 +223,16 @@ module.exports.getCaseStructure = async (req, res) => {
           new_case["http://www.w3id.org/iSeeOnto/explanationexperience#hasOutcome"]["http://linkedu.eu/dedalo/explanationPattern.owl#isBasedOn"] = evals;
           all_cases.push(new_case);
         }));
-      })).then(function () {
-        res.json(all_cases);
-      });
+      }))
+
+    return all_cases;
 
   } catch (error) {
-    res.status(500).json({ message: error });
+    console.log(error)
+    return false;
   }
-};
+}
+
 
 module.exports.update = async (req, res) => {
   try {
@@ -521,12 +535,12 @@ module.exports.getModelPredictResponse = async (req, res) => {
 
     const instance_body = req.body.instance;
     const top_classes = req.body.top_classes
-    console.log("getModelPredictResponse - "+req.params.id);
+    console.log("getModelPredictResponse - " + req.params.id);
 
     var config = {
       method: 'post',
       url: MODELAPI_URL + 'predict',
-      headers: { 
+      headers: {
         'Content-Type': 'application/json'
       },
       maxBodyLength: Infinity,
@@ -551,19 +565,23 @@ module.exports.getExplainerResponse = async (req, res) => {
 
     const instance_body = req.body.instance;
     const explainer_method = req.body.method
-    console.log("getExplainerResponse - "+explainer_method);
+    console.log("getExplainerResponse - " + explainer_method);
+
+    // TODO: Check if everything needs to be sent
+    const cases = await computeCaseStructure(req.params.id)
 
     var config = {
       method: 'post',
       url: EXPLAINERAPI_URL + explainer_method,
-      headers: { 
+      headers: {
         'Content-Type': 'application/json'
       },
       maxBodyLength: Infinity,
       data: {
         type: instance_body.type,
         id: req.params.id,
-        instance: instance_body.instance
+        instance: instance_body.instance,
+        usecase: cases
       }
     };
 
