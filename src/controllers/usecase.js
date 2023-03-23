@@ -34,7 +34,7 @@ module.exports.get = async (req, res) => {
 
 module.exports.getCaseStructure = async (req, res) => {
   const cases = await computeCaseStructure(req.params.id)
-  if (cases) {
+  if (cases.length > 0) {
     res.json(cases)
   } else {
     res.status(500).json({ message: "Incomplete Usecase. Make sure to complete all the sections before generating the case structure!" });
@@ -322,15 +322,12 @@ module.exports.updateModel = async (req, res) => {
     data_source.append('info', JSON.stringify(model_params));
     data_source.append('file', fs.createReadStream(path_source));
 
-    // console.log(data_source)
-    let method = "POST";
-    // console.log(updatedData.completed)
 
-    // TODO: Fix the capability to update
-    // if (updatedData.completed) {
-    //   console.log(updatedData.completed)
-    //   method = "PUT";
-    // }
+    let method = "POST";
+
+    if (updatedData.completed) {
+      method = "PUT";
+    }
 
     var upload_source = {
       method: method,
