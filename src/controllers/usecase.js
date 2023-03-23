@@ -530,8 +530,9 @@ module.exports.getDatasetCount = async (req, res) => {
 module.exports.getModelPredictResponse = async (req, res) => {
   try {
 
-    const instance_body = req.body.instance;
-    const top_classes = req.body.top_classes
+    const instance = req.body.instance;
+    const type = req.body.type;
+    const top_classes = req.body.top_classes;
     console.log("getModelPredictResponse - " + req.params.id);
 
     var config = {
@@ -542,10 +543,10 @@ module.exports.getModelPredictResponse = async (req, res) => {
       },
       maxBodyLength: Infinity,
       data: {
-        type: instance_body.type,
+        type: type,
         id: req.params.id,
         top_classes: top_classes,
-        instance: instance_body.instance
+        instance: instance
       }
     };
 
