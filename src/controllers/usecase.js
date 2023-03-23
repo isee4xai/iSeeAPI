@@ -406,7 +406,11 @@ function convert_attributes(attr) {
       feature.values_raw = cat_values_raw
     }
 
-    attributes.features[a.name] = feature
+    if (a.datatype == "image") {
+      attributes.features["image"] = feature
+    }else{
+      attributes.features[a.name] = feature
+    }
   })
   return attributes;
 }
@@ -462,7 +466,7 @@ module.exports.getRandomDataInstance = async (req, res) => {
     };
 
     let response = await axios(config)
-    const num_instances = response.data;
+    const num_instances = response.data.count;
     const rand_index = generateRandom(num_instances);
 
     var config = {
@@ -473,11 +477,23 @@ module.exports.getRandomDataInstance = async (req, res) => {
 
     let response_sample = await axios(config)
 
-    // For Image Data
-    let url = response_sample.data.url;
+    res.json(response_sample.data);
+  } catch (error) {
+    res.status(500).json({ message: error });
+  }
+}
 
-    const sample = { "instance": url };
-    res.json(sample);
+module.exports.getDatasetCount = async (req, res) => {
+  try {
+
+    var config = {
+      method: 'GET',
+      url: MODELAPI_URL + 'num_instances/' + req.params.id,
+      headers: {}
+    };
+    
+    let response = await axios(config)
+    res.json(response.data);
   } catch (error) {
     res.status(500).json({ message: error });
   }

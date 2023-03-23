@@ -20,6 +20,14 @@ router.get('/:id', [isCompanyUsecase], usecasectrl.get);
 
 // Get one with iSee casestructure JSON Format
 router.get('/:id/casestructure', [isCompanyUsecase], usecasectrl.getCaseStructure);
+
+router.get('/:id/dataset/count', [isCompanyUsecase], usecasectrl.getDatasetCount);
+router.get('/:id/dataset/randomInstance', [isCompanyUsecase], usecasectrl.getRandomDataInstance);
+
+router.post('/:id/model/explain', [isCompanyUsecase], usecasectrl.getExplainerResponse);
+router.post('/:id/model/predict', [isCompanyUsecase], usecasectrl.getModelPredictResponse);
+
+// Duplicated Above - Deprecate Later
 router.get('/:id/sampleDataInstance', [isCompanyUsecase], usecasectrl.getRandomDataInstance);
 router.post('/:id/explainerResponse', [isCompanyUsecase], usecasectrl.getExplainerResponse);
 router.post('/:id/predictResponse', [isCompanyUsecase], usecasectrl.getModelPredictResponse);
