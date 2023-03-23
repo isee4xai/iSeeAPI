@@ -562,7 +562,9 @@ module.exports.getExplainerResponse = async (req, res) => {
   try {
 
     const instance_body = req.body.instance;
-    const explainer_method = req.body.method
+    const explainer_method = req.body.method;
+    const params = req.body.params;
+    const type = req.body.type;
     console.log("getExplainerResponse - " + explainer_method);
 
     // TODO: Check if everything needs to be sent
@@ -576,10 +578,11 @@ module.exports.getExplainerResponse = async (req, res) => {
       },
       maxBodyLength: Infinity,
       data: {
-        type: instance_body.type,
+        type: type,
         id: req.params.id,
-        instance: instance_body.instance,
-        usecase: cases
+        instance: instance_body,
+        usecase: cases,
+        params: params
       }
     };
 
