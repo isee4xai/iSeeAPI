@@ -4,6 +4,7 @@ const usecasectrl = require('../controllers/usecase');
 const personactrl = require('../controllers/persona');
 const intentctrl = require('../controllers/intent');
 const { isCompanyUsecase } = require('../middlewares/validateCompany');
+const { incrementVersion } = require('../middlewares/incrementVersion');
 
 //----------------------------------------------------
 // Usecase Related Endpoints
@@ -37,13 +38,13 @@ router.post('/:id/predictResponse', [isCompanyUsecase], usecasectrl.getModelPred
 router.get('/', usecasectrl.list);
 
 // Update Settings
-router.patch('/:id/settings', [isCompanyUsecase], usecasectrl.updateSettings);
+router.patch('/:id/settings', [isCompanyUsecase, incrementVersion], usecasectrl.updateSettings);
 
 // Update Model
-router.patch('/:id/model', [isCompanyUsecase], usecasectrl.updateModel);
+router.patch('/:id/model', [isCompanyUsecase, incrementVersion], usecasectrl.updateModel);
 
 // Update published state
-router.patch('/:id/publish', [isCompanyUsecase], usecasectrl.updatePublish);
+router.patch('/:id/publish', [isCompanyUsecase, incrementVersion], usecasectrl.updatePublish);
 
 // Delete by ID
 router.delete('/:id', [isCompanyUsecase], usecasectrl.delete);
@@ -54,22 +55,22 @@ router.delete('/:id', [isCompanyUsecase], usecasectrl.delete);
 //---------------------------------------------------
 
 // Add Persona to Usecase
-router.post('/:id/persona', [isCompanyUsecase], personactrl.add);
+router.post('/:id/persona', [isCompanyUsecase, incrementVersion], personactrl.add);
 
 // Update Persona Details
-router.patch('/:id/persona/:personaId', [isCompanyUsecase], personactrl.updateDetails);
+router.patch('/:id/persona/:personaId', [isCompanyUsecase, incrementVersion], personactrl.updateDetails);
 
 // Delete Persona Details
-router.delete('/:id/persona/:personaId', [isCompanyUsecase], personactrl.delete);
+router.delete('/:id/persona/:personaId', [isCompanyUsecase, incrementVersion], personactrl.delete);
 
 //----------------------------------------------------
 // Intent Related Endpoints
 //---------------------------------------------------
 
 // Add intent to Persona
-router.post('/:id/persona/:personaId/intent', [isCompanyUsecase], intentctrl.add);
-router.delete('/:id/persona/:personaId/intent/:intentId', [isCompanyUsecase], intentctrl.delete);
-router.patch('/:id/persona/:personaId/intent/:intentId', [isCompanyUsecase], intentctrl.update);
+router.post('/:id/persona/:personaId/intent', [isCompanyUsecase, incrementVersion], intentctrl.add);
+router.delete('/:id/persona/:personaId/intent/:intentId', [isCompanyUsecase, incrementVersion], intentctrl.delete);
+router.patch('/:id/persona/:personaId/intent/:intentId', [isCompanyUsecase, incrementVersion], intentctrl.update);
 
 
 module.exports = router;
