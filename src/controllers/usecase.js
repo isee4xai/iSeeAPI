@@ -14,6 +14,8 @@ module.exports.create = async (req, res) => {
   try {
     data.company = req.companyId;
     data.user = req.userId;
+    data.version = 0; // Start with 0 for unpublished state
+
 
     const dataToSave = await data.save();
     res.status(200).json(dataToSave)
@@ -66,6 +68,7 @@ async function computeCaseStructure(usecaseId) {
 
     // need to remove spaces from the use case name
     build_json = build_json.replaceAll("<casename>", data["name"].replaceAll(" ", "_"));
+    build_json = build_json.replaceAll("<version>", data["version"]);
 
     //basics updates
     var conv = [
