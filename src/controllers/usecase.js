@@ -61,9 +61,10 @@ async function computeCaseStructure(usecaseId) {
       };
       base_list.push(base);
     }
-
+    bases_keyed = []
     base_list.forEach(function (change) {
       build_json = build_json.replaceAll(change['key'], change['val'])
+      bases_keyed[change['key']] = change['val'];
     });
 
     // need to remove spaces from the use case name
@@ -124,7 +125,7 @@ async function computeCaseStructure(usecaseId) {
 
     //AITask keeps the last item
     var ai_tasks = data["settings"]["ai_task"];
-    build_json["http://www.w3id.org/iSeeOnto/explanationexperience#hasDescription"]["http://www.w3id.org/iSeeOnto/explanationexperience#hasAIModel"]["http://www.w3id.org/iSeeOnto/aimodel#solves"]["classes"] = [ai_tasks[ai_tasks.length - 1]];
+    build_json[bases_keyed["<ee_IRI>"] + "hasDescription"][bases_keyed["<ee_IRI>"] + "hasAIModel"][bases_keyed["<aimodel_IRI>"] + "solves"]["classes"] = [ai_tasks[ai_tasks.length - 1]];
 
     //AIMethod:list keeps a list of last items
     var ai_methods = data["settings"]["ai_method"];
@@ -132,14 +133,14 @@ async function computeCaseStructure(usecaseId) {
     ai_methods.forEach(function (method) {
       methods.push(method[method.length - 1]);
     });
-    build_json["http://www.w3id.org/iSeeOnto/explanationexperience#hasDescription"]["http://www.w3id.org/iSeeOnto/explanationexperience#hasAIModel"]["http://www.w3id.org/iSeeOnto/explainer#utilises"]["classes"] = methods;
+    build_json[bases_keyed['<ee_IRI>'] + "hasDescription"][bases_keyed['<ee_IRI>'] + "hasAIModel"][bases_keyed['<explainer_IRI>'] + "utilises"]["classes"] = methods;
 
     //AI Model assessments
     var aievals = data["settings"]["assessments"];
     let assessments = [];
     if (aievals) {
       aievals.forEach((option, i) => {
-        let op = { ...build_json["http://www.w3id.org/iSeeOnto/explanationexperience#hasDescription"]["http://www.w3id.org/iSeeOnto/explanationexperience#hasAIModel"]["http://www.w3id.org/iSeeOnto/evaluation#annotatedBy"][0] };
+        let op = { ...build_json[bases_keyed['<ee_IRI>'] + "hasDescription"][bases_keyed['<ee_IRI>'] + "hasAIModel"][bases_keyed['<evaluation_IRI>'] + "annotatedBy"][0] };
         op["instance"] = op["instance"] + "_" + i;
         op["http://sensornet.abdn.ac.uk/onts/Qual-O#basedOn"] = option.assesment_type;
         temp = { ...op["http://www.w3.org/ns/prov#value"] };
@@ -149,7 +150,7 @@ async function computeCaseStructure(usecaseId) {
       });
     }
 
-    build_json["http://www.w3id.org/iSeeOnto/explanationexperience#hasDescription"]["http://www.w3id.org/iSeeOnto/explanationexperience#hasAIModel"]["http://www.w3id.org/iSeeOnto/evaluation#annotatedBy"] = assessments;
+    build_json[bases_keyed['<ee_IRI>'] + "hasDescription"][bases_keyed['<ee_IRI>'] + "hasAIModel"][bases_keyed['<evaluation_IRI>'] + "annotatedBy"] = assessments;
 
     var all_cases = []
     // Now do persona by persona
@@ -167,63 +168,86 @@ async function computeCaseStructure(usecaseId) {
 
           const selected_tree = await Tree.findById(intent.strategy_selected);
 
-          new_case["http://www.w3id.org/iSeeOnto/explanationexperience#hasSolution"] = selected_tree.data
+          new_case[bases_keyed['<ee_IRI>'] + "hasSolution"] = selected_tree.data
 
           var asks = []
           intent.questions.forEach(question => {
-            var ask = { ...new_case["http://www.w3id.org/iSeeOnto/explanationexperience#hasDescription"]["http://www.w3id.org/iSeeOnto/explanationexperience#hasUserGroup"]["https://purl.org/heals/eo#asks"][0] };
+            var ask = { ...new_case[bases_keyed['<ee_IRI>'] + "hasDescription"][bases_keyed['<ee_IRI>'] + "hasUserGroup"]["https://purl.org/heals/eo#asks"][0] };
             ask["http://semanticscience.org/resource/SIO_000300"] = question.text;
             ask["instance"] = ask["instance"] + "_" + question.id;
             if (question.target == "https://purl.org/heals/eo#SystemRecommendation") {
-              ask["http://www.w3id.org/iSeeOnto/user#hasQuestionTarget"] = new_case["http://www.w3id.org/iSeeOnto/explanationexperience#hasDescription"]["http://www.w3id.org/iSeeOnto/explanationexperience#hasAIModel"]["http://www.w3id.org/iSeeOnto/aimodel#solves"]["http://semanticscience.org/resource/SIO_000229"][0];
+              ask[bases_keyed['<user_IRI>'] + "hasQuestionTarget"] = new_case[bases_keyed['<ee_IRI>'] + "hasDescription"][bases_keyed['<ee_IRI>'] + "hasAIModel"][bases_keyed['<aimodel_IRI>'] + "solves"]["http://semanticscience.org/resource/SIO_000229"][0];
             }
             else if (question.target == "https://purl.org/heals/eo#ArtificialIntelligenceMethod") {
-              ask["http://www.w3id.org/iSeeOnto/user#hasQuestionTarget"] = new_case["http://www.w3id.org/iSeeOnto/explanationexperience#hasDescription"]["http://www.w3id.org/iSeeOnto/explanationexperience#hasAIModel"]["http://www.w3id.org/iSeeOnto/explainer#utilises"];
+              ask[bases_keyed['<user_IRI>'] + "hasQuestionTarget"] = new_case[bases_keyed['<ee_IRI>'] + "hasDescription"][bases_keyed['<ee_IRI>'] + "hasAIModel"][bases_keyed['<explainer_IRI>'] + "utilises"];
             }
-            else if (question.target == "http://www.w3id.org/iSeeOnto/aimodel#Dataset") {
-              ask["http://www.w3id.org/iSeeOnto/user#hasQuestionTarget"] = new_case["http://www.w3id.org/iSeeOnto/explanationexperience#hasDescription"]["http://www.w3id.org/iSeeOnto/explanationexperience#hasAIModel"]["http://www.w3id.org/iSeeOnto/aimodel#trainedOn"][0];
+            else if (question.target == bases_keyed['<aimodel_IRI>'] + "Dataset") {
+              ask[bases_keyed['<user_IRI>'] + "hasQuestionTarget"] = new_case[bases_keyed['<ee_IRI>'] + "hasDescription"][bases_keyed['<ee_IRI>'] + "hasAIModel"][bases_keyed['<aimodel_IRI>'] + "trainedOn"][0];
             }
             asks.push(ask);
           });
 
           // Added Unique ID for User Group
-          new_case["http://www.w3id.org/iSeeOnto/explanationexperience#hasDescription"]["http://www.w3id.org/iSeeOnto/explanationexperience#hasUserGroup"]["instance"] = "http://www.w3id.org/iSeeOnto/explanationexperience/with_model/with_modelUserGroup_" + persona._id;
+          new_case[bases_keyed['<ee_IRI>'] + "hasDescription"][bases_keyed['<ee_IRI>'] + "hasUserGroup"]["instance"] = "http://www.w3id.org/iSeeOnto/explanationexperience/with_model/with_modelUserGroup_" + persona._id;
 
+          new_case[bases_keyed['<ee_IRI>'] + "hasDescription"][bases_keyed['<ee_IRI>'] + "hasAIModel"][bases_keyed['<aimodel_IRI>'] + "hasCaseStructureMetaData"]["value"] = JSON.stringify(data.model.attributes)
 
-          new_case["http://www.w3id.org/iSeeOnto/explanationexperience#hasDescription"]["http://www.w3id.org/iSeeOnto/explanationexperience#hasAIModel"]["http://www.w3id.org/iSeeOnto/aimodel#hasCaseStructureMetaData"]["value"] = JSON.stringify(data.model.attributes)
-
-
-          new_case["http://www.w3id.org/iSeeOnto/explanationexperience#hasDescription"]["http://www.w3id.org/iSeeOnto/explanationexperience#hasUserGroup"]["https://purl.org/heals/eo#asks"] = asks;
+          new_case[bases_keyed['<ee_IRI>'] + "hasDescription"][bases_keyed['<ee_IRI>'] + "hasUserGroup"]["https://purl.org/heals/eo#asks"] = asks;
 
           var evals = []
           var index = 0;
+          const evalQTemplate = JSON.stringify(new_case[bases_keyed['<ee_IRI>'] + "hasOutcome"]["http://linkedu.eu/dedalo/explanationPattern.owl#isBasedOn"][0])
+
+          const evalResponsesTemplate = JSON.stringify(new_case[bases_keyed['<ee_IRI>'] + "hasOutcome"]["http://linkedu.eu/dedalo/explanationPattern.owl#isBasedOn"][0][bases_keyed['<ue_IRI>'] + "hasResponseOptions"]["http://semanticscience.org/resource/SIO_000974"][0]);
+
           intent.evaluation.questions.forEach(question => {
-            var ask = { ...new_case["http://www.w3id.org/iSeeOnto/explanationexperience#hasOutcome"]["http://linkedu.eu/dedalo/explanationPattern.owl#isBasedOn"][0] };
-            ask["http://www.w3.org/2000/01/rdf-schema#comment"] = question.content;
-            ask["instance"] = ask["instance"] + "_" + question.id;
-            ask["http://www.w3id.org/iSeeOnto/userevaluation#sequenceIndex"] = index++;
+            var evalAsk = JSON.parse(evalQTemplate)
+
+            evalAsk["http://www.w3.org/2000/01/rdf-schema#comment"] = question.content;
+            evalAsk["instance"] = evalAsk["instance"] + "_" + question.id;
+            evalAsk[bases_keyed['<ue_IRI>'] + "sequenceIndex"] = index++;
+
             switch (question.responseType) {
+              case "Free-Text":
+                evalAsk["classes"] = [bases_keyed['<ue_IRI>'] + "Open_Question"];
+                break;
+              case "Number":
+                evalAsk["classes"] = [bases_keyed['<ue_IRI>'] + "Number_Question"];
+                break;
+              case "Radio":
+                evalAsk["classes"] = [bases_keyed['<ue_IRI>'] + "SingleChoiceNominalQuestion"];
+                break;
               case "Likert":
-                ask["classes"] = ["http://www.w3id.org/iSeeOnto/userevaluation#Likert_Scale_Question"];
+                evalAsk["classes"] = [bases_keyed['<ue_IRI>'] + "Likert_Scale_Question"];
+                break;
+              case "Checkbox":
+                evalAsk["classes"] = [bases_keyed['<ue_IRI>'] + "MultipleChoiceNominalQuestion"];
                 break;
               default:
-                ask["classes"] = ["http://www.w3id.org/iSeeOnto/userevaluation#Likert_Scale_Question"];
+                evalAsk["classes"] = [bases_keyed['<ue_IRI>'] + "Likert_Scale_Question"];
             }
-            ask["http://sensornet.abdn.ac.uk/onts/Qual-O#measures"]["instance"] = question.dimension;
 
-            var ops = [];
-            question.responseOptions.forEach(option => {
-              var op = { ...new_case["http://www.w3id.org/iSeeOnto/explanationexperience#hasOutcome"]["http://linkedu.eu/dedalo/explanationPattern.owl#isBasedOn"][0]["http://www.w3id.org/iSeeOnto/userevaluation#hasResponseOptions"]["http://semanticscience.org/resource/SIO_000974"][0] };
-              op["instance"] = op["instance"] + "_" + option.id;
-              op["https://www.w3id.org/iSeeOnto/BehaviourTree#pair_value_literal"] = option.content;
-              op["https://www.w3id.org/iSeeOnto/BehaviourTree#pairKey"] = option.id;
-              ops.push(op);
-            });
-            ask["http://www.w3id.org/iSeeOnto/userevaluation#hasResponseOptions"]["http://semanticscience.org/resource/SIO_000974"] = ops;
+            evalAsk["http://sensornet.abdn.ac.uk/onts/Qual-O#measures"]["instance"] = question.dimension;
 
-            evals.push(ask);
+            if (question.responseType == "Checkbox" || question.responseType == "Likert" || question.responseType == "Radio") {
+              console.log("IN", question.responseType)
+              let ops = [];
+              question.responseOptions.forEach(option => {
+                let op = JSON.parse(evalResponsesTemplate);
+                op["instance"] = op["instance"] + "_" + option.id;
+                op["https://www.w3id.org/iSeeOnto/BehaviourTree#pair_value_literal"] = option.content;
+                op["https://www.w3id.org/iSeeOnto/BehaviourTree#pairKey"] = option.id;
+                ops.push(op);
+              });
+
+              evalAsk["http://www.w3id.org/iSeeOnto/userevaluation#hasResponseOptions"]["http://semanticscience.org/resource/SIO_000974"] = ops;
+            } else {
+              evalAsk[bases_keyed['<ue_IRI>'] + "hasResponseOptions"] = {}
+            }
+
+            evals.push(evalAsk);
           });
-          new_case["http://www.w3id.org/iSeeOnto/explanationexperience#hasOutcome"]["http://linkedu.eu/dedalo/explanationPattern.owl#isBasedOn"] = evals;
+          new_case[bases_keyed['<ee_IRI>'] + "hasOutcome"]["http://linkedu.eu/dedalo/explanationPattern.owl#isBasedOn"] = evals;
           all_cases.push(new_case);
         }));
       }))
