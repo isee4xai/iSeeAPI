@@ -5,6 +5,7 @@ const { v4: uuidv4, v4 } = require("uuid");
 
 const CBRAPI_URL = process.env.CBRAPI_URL;
 const CBRAPI_PROJECT = process.env.CBRAPI_PROJECT;
+const CBRAPI_TOKEN = process.env.CBRAPI_TOKEN;
 const NUM_QUERY_FIELDS = 8
 
 module.exports.query = async (req, res) => {
@@ -156,7 +157,8 @@ module.exports.query = async (req, res) => {
             method: 'post',
             url: CBRAPI_URL + 'retrieve',
             headers: {
-                'Accept': 'application/json'
+                'Accept': 'application/json',
+                'Authorization': CBRAPI_TOKEN,
             },
             data: request_body
         };
