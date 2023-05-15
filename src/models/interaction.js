@@ -1,26 +1,25 @@
+
+// For now we will save everything - Later optimise for required fields etc.
 const mongoose = require('mongoose');
 
-const interactionschema = new mongoose.Schema({
-    name: String,
-    dimension: String,
-    personaId: String,
-    usecaseId: String,
-    questions: [{
-        id: String,
-        content: String,
-        responseType: String,
-        dimension: String,
-        answer: [String],
-        responseOptions: [{
-            val: String,
-        }],
-        required: Boolean,
-        completed: Boolean,
-        validators: {
-            min: Number,
-            max: Number,
-        }
-    }],
-}, { strict: false, timestamps: true })
+// Duplicated on persona.js file 
+const interactionSchema = new mongoose.Schema({
+    interaction: {
+        type: Object
+    },
+    company: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Company'
+    },
+    usecase: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Usecase'
+    },
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    },
+}, { strict: false, timestamps: true });
 
-module.exports = mongoose.model('interaction', interactionschema);
+
+module.exports = mongoose.model('Interaction', interactionSchema)
