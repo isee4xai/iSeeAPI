@@ -66,7 +66,13 @@ app.use('/api/cbr/',[authJwt.verifyToken, authJwt.isDesignUser], cbr_cycle)
 
 app.use('/api/questionnaire/', questionnaire)
 app.use('/api/user/', users)
-app.use('/api/interaction/', interaction)
 app.use('/api/stats/', stats)
-app.use('/api/trees/', trees)
+
+// For Explainer Related
 app.use('/api/explainers/', explainers)
+
+// For Explanation Editor
+app.use('/api/trees/', trees)
+
+// Dialog Manager Storage
+app.use('/api/interaction/', [authJwt.verifyToken, authJwt.isDesignUser], interaction);

@@ -147,7 +147,7 @@ module.exports.query = async (req, res) => {
                     "strategy": "Best Match"
                 }
             ],
-            "topk": 4,
+            "topk": 6,
             "globalSim": "Weighted Sum",
             "explanation": true,
             "projectId": CBRAPI_PROJECT
