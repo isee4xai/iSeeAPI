@@ -245,6 +245,16 @@ async function computeCaseStructure(usecaseId) {
               evalAsk[bases_keyed['<ue_IRI>'] + "hasResponseOptions"] = {}
             }
 
+            if (question.responseType == "Number" && question.validators){
+              var new_evalAsk = JSON.stringify(evalAsk)
+              new_evalAsk = new_evalAsk.replaceAll('<max_value>', question.validators.max);
+              new_evalAsk = new_evalAsk.replaceAll('<min_value>', question.validators.min);
+              evalAsk = JSON.parse(new_evalAsk);
+            }
+            else{
+              evalAsk[bases_keyed['<ue_IRI>'] + "hasAnswerFrom"] = []
+            }
+
             evals.push(evalAsk);
           });
           new_case[bases_keyed['<ee_IRI>'] + "hasOutcome"]["http://linkedu.eu/dedalo/explanationPattern.owl#isBasedOn"] = evals;
