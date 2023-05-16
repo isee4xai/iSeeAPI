@@ -71,7 +71,8 @@ module.exports.query = async (req, res) => {
                 tree: dataToSave._id,
                 selected: false,
                 methods: methods,
-                id: "strat-" + v4()
+                id: "strat-" + v4(),
+                cbr_ref: strategy.Name  // For debuggining purpose
             }
             strategies.push(s)
         }));
@@ -193,7 +194,8 @@ module.exports.reuse = async (req, res) => {
             tree: dataToSave._id,
             selected: false,
             methods: methods,
-            id: "strat-" + v4()
+            id: "strat-" + v4(),
+            cbr_ref: recommendedCase.Name  // For debuggining purpose
         }
         strategies.push(s)
 
