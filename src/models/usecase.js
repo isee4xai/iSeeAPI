@@ -32,7 +32,7 @@ const usecaseSchema = new mongoose.Schema({
         type: String
     },
     domain: {
-        type: String
+        type: Array
     },
     status: {
         type: String
