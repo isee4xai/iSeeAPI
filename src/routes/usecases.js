@@ -19,21 +19,6 @@ router.patch('/:id', [isCompanyUsecase], usecasectrl.update);
 // Get one
 router.get('/:id', [isCompanyUsecase], usecasectrl.get);
 
-// Get one with iSee casestructure JSON Format
-router.get('/:id/casestructure', [isCompanyUsecase], usecasectrl.getCaseStructure);
-
-router.get('/:id/dataset/count', [isCompanyUsecase], usecasectrl.getDatasetCount);
-router.get('/:id/dataset/randomInstance', [isCompanyUsecase], usecasectrl.getRandomDataInstance);
-
-router.post('/:id/model/explain', [isCompanyUsecase], usecasectrl.getExplainerResponse);
-router.post('/:id/model/predict', [isCompanyUsecase], usecasectrl.getModelPredictResponse);
-
-// Duplicated Above - Deprecate Later
-router.get('/:id/sampleDataInstance', [isCompanyUsecase], usecasectrl.getRandomDataInstance);
-router.post('/:id/explainerResponse', [isCompanyUsecase], usecasectrl.getExplainerResponse);
-router.post('/:id/predictResponse', [isCompanyUsecase], usecasectrl.getModelPredictResponse);
-
-
 // Get all
 router.get('/', usecasectrl.list);
 
@@ -71,6 +56,18 @@ router.delete('/:id/persona/:personaId', [isCompanyUsecase, incrementVersion], p
 router.post('/:id/persona/:personaId/intent', [isCompanyUsecase, incrementVersion], intentctrl.add);
 router.delete('/:id/persona/:personaId/intent/:intentId', [isCompanyUsecase, incrementVersion], intentctrl.delete);
 router.patch('/:id/persona/:personaId/intent/:intentId', [isCompanyUsecase, incrementVersion], intentctrl.update);
+
+//----------------------------------------------------
+// Invitations Related Endpoints
+//---------------------------------------------------
+// Create
+router.post('/:id/endusers/invite',[isCompanyUsecase], usecasectrl.createInvite);
+
+// Update by ID
+router.patch('/:id/endusers/invite', [isCompanyUsecase], usecasectrl.update);
+
+// Get one
+router.get('/:id/endusers/invites', [isCompanyUsecase], usecasectrl.getInvites);
 
 
 module.exports = router;

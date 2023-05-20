@@ -69,6 +69,51 @@ isDesignUser = (req, res, next) => {
     });
 };
 
+isEndUser = (req, res, next) => {
+    User.findById(req.userId).exec((err, user) => {
+        if (err) {
+            res.status(500).send({ message: err });
+            return;
+        }
+
+        if (!user) {
+            res.status(500).send({ message: "User Could not be found!" });
+            return;
+        }
+
+        if (user.access === "end_user") {
+            req.companyId = user.company;
+            next();
+            return;
+        }
+        res.status(403).send({ message: "Require End User Role!" });
+        return;
+    });
+};
+
+isDesignUserOrEndUser = (req, res, next) => {
+    User.findById(req.userId).exec((err, user) => {
+        if (err) {
+            res.status(500).send({ message: err });
+            return;
+        }
+
+        if (!user) {
+            res.status(500).send({ message: "User Could not be found!" });
+            return;
+        }
+
+        if (user.access === "end_user" || user.access === "design_user"  ) {
+            req.companyId = user.company;
+            next();
+            return;
+        }
+        
+        res.status(403).send({ message: "Require End User Role!" });
+        return;
+    });
+};
+
 isCompanyUsecase = (req, res, next) => {
     console.log(req.params.id)
     Usecase.findById(req.params.id).exec((err, usecase) => {
@@ -95,6 +140,8 @@ const authJwt = {
     verifyToken,
     isDesignUser,
     isCompanyUsecase,
-    isAdmin
+    isAdmin,
+    isEndUser,
+    isDesignUserOrEndUser
 };
 module.exports = authJwt;

@@ -12,7 +12,8 @@ const userSchema = new mongoose.Schema({
     },
     email: {
         type: String,
-        default: ''
+        default: '',
+        unique: true
     },
     company: {
         type: mongoose.Schema.Types.ObjectId,
@@ -20,7 +21,8 @@ const userSchema = new mongoose.Schema({
     },
     password: {
         type: String,
-        default: ''
+        default: '',
+        select: false
     },
     isDeleted: {
         type: Boolean,
@@ -32,8 +34,12 @@ const userSchema = new mongoose.Schema({
     },
     type: {
         type: String,
-        default: 'User' // End User, Design User, Admin 
-    }
+        default: 'User'
+    },
+    usecases: [{ // Only for end_user access
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Usecase'
+    }]
 }, { strict: false, timestamps: true });
 
 module.exports = mongoose.model('User', userSchema)

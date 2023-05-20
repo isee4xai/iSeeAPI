@@ -5,6 +5,7 @@ var FormData = require('form-data');
 var fs = require('fs');
 var Https = require('https');
 const { v4 } = require("uuid");
+const UsecaseInvite = require("../models/usecaseInvite");
 
 const MODELAPI_URL = process.env.MODELAPI_URL;
 const EXPLAINERAPI_URL = process.env.EXPLAINERAPI_URL;
@@ -245,13 +246,13 @@ async function computeCaseStructure(usecaseId) {
               evalAsk[bases_keyed['<ue_IRI>'] + "hasResponseOptions"] = {}
             }
 
-            if (question.responseType == "Number" && question.validators){
+            if (question.responseType == "Number" && question.validators) {
               var new_evalAsk = JSON.stringify(evalAsk)
               new_evalAsk = new_evalAsk.replaceAll('<max_value>', question.validators.max);
               new_evalAsk = new_evalAsk.replaceAll('<min_value>', question.validators.min);
               evalAsk = JSON.parse(new_evalAsk);
             }
-            else{
+            else {
               evalAsk[bases_keyed['<ue_IRI>'] + "hasAnswerFrom"] = []
             }
 
@@ -517,6 +518,49 @@ module.exports.updatePublish = async (req, res) => {
     res.status(400).json({ message: error.message })
   }
 }
+
+////////////////////////////////////////////////////////////
+// Manage Endusers 
+////////////////////////////////////////////////////////////
+module.exports.createInvite = async (req, res) => {
+  let data = new UsecaseInvite();
+
+  try {
+    data.name = req.body.name;
+    data.company = req.companyId;
+    data.user = req.userId;
+    data.published = true;
+    data.key = v4();
+    data.usecase = req.params.id;
+    const dataToSave = await data.save();
+    res.status(200).json(dataToSave)
+  }
+  catch (error) {
+    res.status(400).json({ message: error.message })
+  }
+}
+
+module.exports.getInvites = async (req, res) => {
+  try {
+    const data = await UsecaseInvite.find({ usecase: req.params.id }).populate('endusers');
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ message: error });
+  }
+};
+
+module.exports.validateInviteCode = async (req, res) => {
+  try {
+    const data = await UsecaseInvite.findOne({ key: req.params.id, published: true });
+    if (data) {
+      res.json({ name: data.name });
+    } else {
+      res.status(404).json({ message: "Invalid Invite Code" });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error });
+  }
+};
 
 /////////////////////////////////////////////////////////////////////////
 // Model Hub Integration

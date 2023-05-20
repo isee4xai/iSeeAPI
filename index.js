@@ -19,6 +19,9 @@ database.once('connected', () => {
 })
 
 const usecases = require('./src/routes/usecases');
+const usecases_shared = require('./src/routes/usecases_shared');
+const endusers = require('./src/routes/endusers');
+
 const questionnaire = require('./src/routes/questionnaire');
 const users = require('./src/routes/users');
 
@@ -29,8 +32,6 @@ const trees = require('./src/routes/trees');
 const explainers = require('./src/routes/explainers');
 const cbr_cycle = require('./src/routes/cbr_cycle');
 // Add other service routes here. e.g. questionaires
-
-
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -62,7 +63,13 @@ app.listen(PORT, () => {
 });
 
 app.use('/api/usecases/', [authJwt.verifyToken, authJwt.isDesignUser], usecases);
+// Shared /usecases for design user and end user 
+app.use('/api/usecases/', [authJwt.verifyToken, authJwt.isDesignUserOrEndUser], usecases_shared);
+
+app.use('/api/enduser/', [authJwt.verifyToken, authJwt.isEndUser], endusers);
 app.use('/api/cbr/',[authJwt.verifyToken, authJwt.isDesignUser], cbr_cycle)
+// Dialog Manager Storage
+app.use('/api/interaction/', [authJwt.verifyToken], interaction);
 
 app.use('/api/questionnaire/', questionnaire)
 app.use('/api/user/', users)
@@ -73,6 +80,3 @@ app.use('/api/explainers/', explainers)
 
 // For Explanation Editor
 app.use('/api/trees/', trees)
-
-// Dialog Manager Storage
-app.use('/api/interaction/', [authJwt.verifyToken, authJwt.isDesignUser], interaction);
