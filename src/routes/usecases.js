@@ -72,5 +72,17 @@ router.post('/:id/persona/:personaId/intent', [isCompanyUsecase, incrementVersio
 router.delete('/:id/persona/:personaId/intent/:intentId', [isCompanyUsecase, incrementVersion], intentctrl.delete);
 router.patch('/:id/persona/:personaId/intent/:intentId', [isCompanyUsecase, incrementVersion], intentctrl.update);
 
+//----------------------------------------------------
+// Invitations Related Endpoints
+//---------------------------------------------------
+// Create
+router.post('/:id/endusers/invite',[isCompanyUsecase], usecasectrl.createInvite);
+
+// Update by ID
+router.patch('/:id/endusers/invite', [isCompanyUsecase], usecasectrl.update);
+
+// Get one
+router.get('/:id/endusers/invites', [isCompanyUsecase], usecasectrl.getInvites);
+
 
 module.exports = router;

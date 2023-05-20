@@ -3,6 +3,7 @@ const User = require('../models/user');
 const Company = require('../models/company');
 var bcrypt = require("bcryptjs");
 var jwt = require("jsonwebtoken");
+const usecaseInvite = require('../models/usecaseInvite');
 const JWT_SECRET = process.env.JWT_SECRET;
 
 // THESE ARE TEMPORARY ADMIN APIS
@@ -171,6 +172,45 @@ module.exports.admin_change_user_company = async (req, res) => {
 }
 
 
+module.exports.registerWithInvite = async (req, res) => {
+    // Validate Invite Code
+    const invite = await usecaseInvite.findOne({ key: req.body.inviteKey, published: true });
+
+    if (invite) {
+        const usecase = await Usecase.findById(invite.usecase);
+        const existingUser = await User.findOne({ email: req.body.email });
+        if (!existingUser) {
+            try {
+                const user = new User({
+                    name: req.body.name,
+                    email: req.body.email,
+                    company: usecase.company,
+                    access: "end_user",
+                    password: bcrypt.hashSync(req.body.password, 8)
+                });
+
+                user.usecases.push(usecase._id)
+                const save = await user.save();
+                console.log("Created User with Invite Code: ", save)
+
+                // Append the User to Invite Code
+                invite.endusers.push(user._id);
+                const invite_save = await invite.save();
+
+                res.status(200).json({status: true});
+            }
+            catch (error) {
+                res.status(500).json({ message: error.message })
+            }
+        } else {
+            console.log("Existing User Email");
+            res.status(400).json({ message: "Existing Email! You already have an account with iSee" })
+        }
+    } else {
+        console.log("Invalid Invite Code");
+        res.status(400).json({ message: "Invalid Invite Code" })
+    }
+}
 
 
 module.exports.login = async (req, res) => {
@@ -178,7 +218,7 @@ module.exports.login = async (req, res) => {
 
         const user = await User.findOne({
             email: req.body.email
-        }).populate('company');
+        }).select('+password').populate('company');
 
         if (!user) {
             return res.status(404).send({ message: "User Not found." });
