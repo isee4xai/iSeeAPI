@@ -191,7 +191,7 @@ module.exports.registerWithInvite = async (req, res) => {
 
                 user.usecases.push(usecase._id)
                 const save = await user.save();
-                console.log("Created User with Invite Code: ", save)
+                console.log("Created User with Invite Code: ", invite)
 
                 // Append the User to Invite Code
                 invite.endusers.push(user._id);
