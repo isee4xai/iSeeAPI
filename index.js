@@ -64,7 +64,7 @@ app.listen(PORT, () => {
 
 app.use('/api/usecases/', [authJwt.verifyToken, authJwt.isDesignUser], usecases);
 // Shared /usecases for design user and end user 
-app.use('/api/usecases/', [authJwt.verifyToken, authJwt.isDesignUserOrEndUser], usecases_shared);
+app.use('/api/usecases_shared/', [authJwt.verifyToken, authJwt.isDesignUserOrEndUser], usecases_shared);
 
 app.use('/api/enduser/', [authJwt.verifyToken, authJwt.isEndUser], endusers);
 app.use('/api/cbr/',[authJwt.verifyToken, authJwt.isDesignUser], cbr_cycle)

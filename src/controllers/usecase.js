@@ -231,7 +231,6 @@ async function computeCaseStructure(usecaseId) {
             evalAsk["http://sensornet.abdn.ac.uk/onts/Qual-O#measures"]["instance"] = question.dimension;
 
             if (question.responseType == "Checkbox" || question.responseType == "Likert" || question.responseType == "Radio") {
-              console.log("IN", question.responseType)
               let ops = [];
               question.responseOptions.forEach(option => {
                 let op = JSON.parse(evalResponsesTemplate);

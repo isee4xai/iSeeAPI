@@ -1,5 +1,6 @@
 const Interaction = require("../models/interaction");
 const { v4: uuidv4 } = require("uuid");
+const Usecase = require("../models/usecase");
 
 module.exports.create = async (req, res) => {
   console.log("Interaction Create --")
