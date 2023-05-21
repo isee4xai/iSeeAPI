@@ -6,7 +6,7 @@ const authJwt = require('../middlewares/authJWT');
 const router = express.Router();
 
 // Usecase level Interactions
-router.get('/usecase/:id', [isCompanyUsecase, authJwt.isDesignUser], controller.findAll);
-router.post('/usecase/:id', [isCompanyUsecase, authJwt.isDesignUserOrEndUser], controller.create);
+router.get('/usecase/:id', [authJwt.isDesignUser, isCompanyUsecase], controller.findAll);
+router.post('/usecase/:id', [authJwt.isDesignUserOrEndUser, isCompanyUsecase], controller.create);
 
 module.exports = router;

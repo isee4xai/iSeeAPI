@@ -20,8 +20,10 @@ verifyToken = (req, res, next) => {
     }
     jwt.verify(token, JWT_SECRET, (err, decoded) => {
         if (err) {
+            console.log("Invalid Access token - "+req.method+" - "+ req.originalUrl)
             return catchAuth(err, res);
         }
+        console.log(req.method+" - "+ req.originalUrl)
         req.userId = decoded._id;
         next();
     });

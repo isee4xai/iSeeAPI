@@ -20,10 +20,9 @@ module.exports.updateDetails = async (req, res) => {
         const usecase = await Usecase.findById(req.params.id);
 
         const personaId = req.params.personaId;
-        console.log("personaId", personaId)
+        console.log("updateDetails - personaId", personaId)
 
         let persona = usecase.personas.id(personaId);
-        console.log(persona)
         persona.details = req.body;
 
         const save = await usecase.save();
@@ -39,7 +38,7 @@ module.exports.delete = async (req, res) => {
         const usecaseId = req.params.id;
         const usecase = await Usecase.findById(usecaseId);
         const personaId = req.params.personaId;
-        console.log("personaId", personaId)
+        console.log("delete personaId", personaId)
 
         // Add Validation Later - Non existent
         usecase.personas.id(personaId).remove();
