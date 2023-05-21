@@ -3,16 +3,21 @@ const { v4: uuidv4 } = require("uuid");
 
 module.exports.create = async (req, res) => {
   console.log("Interaction Create --")
-  let data = new Interaction({ ...req.body });
-  data.company = req.companyId;
-  data.user = req.userId;
-  data.usecase = req.params.id;
+  let interaction = new Interaction({ ...req.body });
+  interaction.company = req.companyId;
+  interaction.user = req.userId;
+  interaction.usecase = req.params.id;
   
   console.log("Interaction req.params.id --", req.params.id)
 
   try {
-    const result = await data.save();
-    console.log("Interaction data.save --")
+    const result = await interaction.save();
+    console.log("Interaction interaction.save --")
+
+    // Reference Document
+    const usecase = await Usecase.findById(req.params.id)
+    usecase.interactions.push(interaction);
+    usecase.save()
 
     res.status(200).json({"status": true});
   } catch (error) {
@@ -30,8 +35,8 @@ module.exports.create = async (req, res) => {
 
 module.exports.findAll = async (req, res) => {
     try {
-      const data = await Interaction.find();
-      res.json(data);
+      const interaction = await Interaction.find();
+      res.json(interaction);
     } catch (error) {
       res.status(500).json({ message: error.message });
     }

@@ -59,7 +59,19 @@ const usecaseSchema = new mongoose.Schema({
     },
     version: {
         type: Number
-    }
+    },
+    invites: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'UsecaseInvite'
+    }],
+    interactions: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Interaction'
+    }],
+    endusers: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    }],
 }, {
     strict: false,
     timestamps: true
