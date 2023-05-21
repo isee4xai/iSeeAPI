@@ -158,7 +158,6 @@ async function computeCaseStructure(usecaseId) {
     const all_mapping = await Promise.all(
       await data.personas.map(async function (persona) {
         await Promise.all(await persona.intents.map(async intent => {
-          // console.log(intent);
           var new_case = JSON.stringify(build_json)
 
           new_case = new_case.replaceAll('<UserGroup>', persona.details.name);
@@ -547,12 +546,31 @@ module.exports.createInvite = async (req, res) => {
 
 module.exports.getInvites = async (req, res) => {
   try {
-    const data = await UsecaseInvite.find({ usecase: req.params.id }).populate('endusers');
+    const data = await UsecaseInvite.find({ usecase: req.params.id }).populate('endusers').sort({ createdAt: "desc" });
     res.json(data);
   } catch (error) {
     res.status(500).json({ message: error });
   }
 };
+
+module.exports.updateInvitePublish = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const inviteId = req.params.inviteId;
+    const data = await UsecaseInvite.findById(inviteId)
+
+    if (!data) {
+      return res.status(404).send({ message: "Usecase Invite Not found." });
+    }
+
+    data.published = req.body.status
+    data.save()
+    res.status(200).json({ message: "Usecase Invite Updated" })
+  }
+  catch (error) {
+    res.status(400).json({ message: error.message })
+  }
+}
 
 module.exports.validateInviteCode = async (req, res) => {
   try {
