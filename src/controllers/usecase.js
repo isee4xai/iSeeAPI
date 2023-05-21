@@ -483,7 +483,7 @@ function convert_attributes(attr) {
 
 module.exports.list = async (req, res) => {
   try {
-    const data = await Usecase.find({ company: req.companyId });
+    const data = await Usecase.find({ company: req.companyId },["_id", "name", "published", "goal","invites", "interactions", "endusers", "version", "createdAt"]);
     res.json(data)
   }
   catch (error) {
@@ -532,8 +532,14 @@ module.exports.createInvite = async (req, res) => {
     data.published = true;
     data.key = v4();
     data.usecase = req.params.id;
-    const dataToSave = await data.save();
-    res.status(200).json(dataToSave)
+
+    const usecase = await Usecase.findById(req.params.id)
+
+    const invite = await data.save();
+    usecase.invites.push(invite);
+    usecase.save()
+
+    res.status(200).json(invite)
   }
   catch (error) {
     res.status(400).json({ message: error.message })
