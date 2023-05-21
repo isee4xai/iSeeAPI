@@ -36,7 +36,16 @@ module.exports.create = async (req, res) => {
 
 module.exports.findAll = async (req, res) => {
   try {
-    const interaction = await Interaction.find({ usecase: req.params.id }).populate('user').sort({ createdAt: "desc" });
+    const interaction = await Interaction.find({ usecase: req.params.id }, ['user', 'createdAt', 'usecase_version']).populate('user').sort({ createdAt: "desc" });
+    res.json(interaction);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports.getInteractionJSON = async (req, res) => {
+  try {
+    const interaction = await Interaction.findById(req.params.interactionId);
     res.json(interaction);
   } catch (error) {
     res.status(500).json({ message: error.message });
