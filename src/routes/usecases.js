@@ -69,5 +69,7 @@ router.patch('/:id/endusers/invite', [isCompanyUsecase], usecasectrl.update);
 // Get one
 router.get('/:id/endusers/invites', [isCompanyUsecase], usecasectrl.getInvites);
 
+// Change State
+router.patch('/:id/endusers/invite/:inviteId/publish', [isCompanyUsecase], usecasectrl.updateInvitePublish);
 
 module.exports = router;

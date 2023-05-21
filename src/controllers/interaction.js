@@ -8,7 +8,7 @@ module.exports.create = async (req, res) => {
   interaction.company = req.companyId;
   interaction.user = req.userId;
   interaction.usecase = req.params.id;
-  
+
   console.log("Interaction req.params.id --", req.params.id)
 
   try {
@@ -20,7 +20,7 @@ module.exports.create = async (req, res) => {
     usecase.interactions.push(interaction);
     usecase.save()
 
-    res.status(200).json({"status": true});
+    res.status(200).json({ "status": true });
   } catch (error) {
     console.log("Interaction error --", error)
 
@@ -35,10 +35,10 @@ module.exports.create = async (req, res) => {
 };
 
 module.exports.findAll = async (req, res) => {
-    try {
-      const interaction = await Interaction.find();
-      res.json(interaction);
-    } catch (error) {
-      res.status(500).json({ message: error.message });
-    }
-  };
+  try {
+    const interaction = await Interaction.find({ usecase: req.params.id }).populate('user').sort({ createdAt: "desc" });
+    res.json(interaction);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
