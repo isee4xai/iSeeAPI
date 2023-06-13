@@ -348,6 +348,7 @@ module.exports.updateModel = async (req, res) => {
       "backend": backend,
       "model_task": ai_task,
       "dataset_type": dataset_type,
+      "isPublic" : false,
       "attributes": convert_attributes(updatedData.attributes)
     }
 
