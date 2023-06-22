@@ -265,7 +265,8 @@ function generateQueryObject(usecase, persona, selected_intent) {
                 "similarity": "Equal",
                 "weight": 1,
                 "unknown": false,
-                "strategy": "Best Match",
+                "strategy": "NN value",
+                "filterTerm": "=",
                 "value": usecase.settings.dataset_type
             },
             {
