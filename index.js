@@ -21,6 +21,7 @@ database.once('connected', () => {
 const usecases = require('./src/routes/usecases');
 const usecases_shared = require('./src/routes/usecases_shared');
 const endusers = require('./src/routes/endusers');
+const adminuser = require('./src/routes/adminuser');
 
 const questionnaire = require('./src/routes/questionnaire');
 const users = require('./src/routes/users');
@@ -67,6 +68,9 @@ app.use('/api/usecases/', [authJwt.verifyToken, authJwt.isDesignUser], usecases)
 app.use('/api/usecases_shared/', [authJwt.verifyToken, authJwt.isDesignUserOrEndUser], usecases_shared);
 
 app.use('/api/enduser/', [authJwt.verifyToken, authJwt.isEndUser], endusers);
+
+app.use('/api/admin/', [authJwt.verifyToken, authJwt.isAdminUser], adminuser);
+
 app.use('/api/cbr/',[authJwt.verifyToken, authJwt.isDesignUser], cbr_cycle)
 // Dialog Manager Storage
 app.use('/api/interaction/', [authJwt.verifyToken], interaction);

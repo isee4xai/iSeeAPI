@@ -29,25 +29,28 @@ verifyToken = (req, res, next) => {
     });
 };
 
-isAdmin = (req, res, next) => {
+isAdminUser = (req, res, next) => {
     User.findById(req.userId).exec((err, user) => {
         if (err) {
             res.status(500).send({ message: err });
             return;
         }
+
         if (!user) {
             res.status(500).send({ message: "User Could not be found!" });
             return;
         }
 
-        if (user.access === "admin") {
+        if (user.access === "admin_user") {
+            req.companyId = user.company;
             next();
             return;
         }
-        res.status(403).send({ message: "Require Admin Role!" });
+        res.status(403).send({ message: "Require Admin User Role!" });
         return;
     });
 };
+
 
 isDesignUser = (req, res, next) => {
     User.findById(req.userId).exec((err, user) => {
@@ -142,8 +145,8 @@ const authJwt = {
     verifyToken,
     isDesignUser,
     isCompanyUsecase,
-    isAdmin,
     isEndUser,
+    isAdminUser,
     isDesignUserOrEndUser
 };
 module.exports = authJwt;

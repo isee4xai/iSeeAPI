@@ -40,6 +40,6 @@ const userSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Usecase'
     }]
-}, { strict: false, timestamps: true });
+}, { strict: false, timestamps: true,toJSON: { virtuals: true }, toObject: {virtuals: true} });
 
 module.exports = mongoose.model('User', userSchema)

@@ -74,7 +74,9 @@ const usecaseSchema = new mongoose.Schema({
     }],
 }, {
     strict: false,
-    timestamps: true
+    timestamps: true,
+    toJSON: { virtuals: true }, toObject: {virtuals: true}
+
 })
 
 module.exports = mongoose.model('Usecase', usecaseSchema)
