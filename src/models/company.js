@@ -18,8 +18,26 @@ const companySchema = new mongoose.Schema({
     description: {
         type: String,
         required: false
-    }
-}, { strict: true, timestamps: true });
+    },
+    // users: [{ type: Object, ref: 'User' }]
+
+}, {
+    strict: true, timestamps: true, toJSON: { virtuals: true }, toObject: {virtuals: true}
+});
+
+companySchema.virtual('users_count', {
+    ref: 'User',
+    localField: '_id',
+    foreignField: 'company',
+    count: true
+})
+
+companySchema.virtual('usecases_count', {
+    ref: 'Usecase',
+    localField: '_id',
+    foreignField: 'company',
+    count: true
+})
 
 module.exports = {
     model: mongoose.model('Company', companySchema),
