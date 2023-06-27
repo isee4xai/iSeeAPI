@@ -43,6 +43,9 @@ module.exports.query = async (req, res) => {
             // let data = new Tree(strategy.Solution)
             const solution_bt = {
                 "name": "Tree",
+                "usecase":usecase._id ,
+                "persona": persona._id,
+                "intent": selected_intent.id,
                 "description": "",
                 "path": "b3projects-" + v4(),
                 "data": strategy.Solution
@@ -167,6 +170,9 @@ module.exports.reuse = async (req, res) => {
         const solution_bt = {
             "name": "Tree",
             "description": "",
+            "usecase":usecase._id ,
+            "persona": persona._id,
+            "intent": selected_intent.id,
             "path": "b3projects-" + v4(),
             "data": recommendedCase.Solution
         }
@@ -247,6 +253,57 @@ module.exports.setDefault = async (req, res) => {
     }
 }
 
+
+module.exports.queryFromTree = async (req, res) => {
+    try {
+        const usecase = await Usecase.findById(req.body.usecaseId);
+
+        const tree = await Tree.findOne({_id: req.body.treeId, usecase: usecase});
+
+        if(!tree || !usecase){
+            res.status(404).json({ message: "Not Found! Check the ID" })
+        }
+
+        let persona = usecase.personas.id(tree.persona);
+        const intentIndex = persona.intents.map((e) => e.id).indexOf(tree.intent);
+        let selected_intent = persona.intents[intentIndex]
+
+        // Temp update topK
+        selected_intent.strategy_topk = req.body.topk;
+
+        let request_body = generateQueryObject(usecase, persona, selected_intent)
+
+        var config = {
+            method: 'post',
+            url: CBRAPI_URL + 'retrieve',
+            headers: {
+                'Accept': 'application/json',
+                'Authorization': CBRAPI_TOKEN,
+            },
+            data: request_body
+        };
+
+        const response = await axios(config)
+        let topTrees = []
+        await Promise.all(response.data.bestK.map(async (strategy) => {
+            const solution_bt = {
+                "name": "Tree",
+                score__: strategy.score__,
+                "usecase":usecase._id ,
+                "persona": persona._id,
+                "intent": selected_intent.id,
+                "description": "",
+                "path": "b3projects-" + v4(),
+                "data": strategy.Solution
+            }
+            topTrees.push(solution_bt)
+        }));
+        res.status(200).json(topTrees)
+    }
+    catch (error) {
+        res.status(400).json({ message: error.message })
+    }
+}
 
 function generateQueryObject(usecase, persona, selected_intent) {
     let request_body = {
