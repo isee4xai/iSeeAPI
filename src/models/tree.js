@@ -7,6 +7,17 @@ const treeSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    usecase: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Usecase'
+    },
+    persona: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Persona'
+    },
+    intent: {
+        type: String,
+    },
 }, { strict: false, timestamps: true });
 
 // Duplicate the ID field.
