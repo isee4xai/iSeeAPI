@@ -27,6 +27,7 @@ router.patch('/:id/settings', [isCompanyUsecase, incrementVersion], usecasectrl.
 
 // Update Model
 router.patch('/:id/model', [isCompanyUsecase, incrementVersion], usecasectrl.updateModel);
+router.patch('/:id/dataset', [isCompanyUsecase, incrementVersion], usecasectrl.updateDataset);
 
 // Update published state
 router.patch('/:id/publish', [isCompanyUsecase, incrementVersion], usecasectrl.updatePublish);
