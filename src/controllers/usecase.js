@@ -316,30 +316,22 @@ module.exports.updateModel = async (req, res) => {
     const usecase = await Usecase.findById(req.params.id);
 
     let updatedData = {
-      mode: req.body.mode,
-      backend: req.body.backend,
-      attributes: JSON.parse(req.body.attributes),
-      completed: usecase.model.completed,
-      source_file: '',
-      dataset_file: ''
+      ...usecase.model
     }
+    updatedData["backend"] = req.body.backend
+    updatedData["mode"] = "file"
+
 
     let source_file = req.files.source_file;
-    let dataset_file = req.files.dataset_file;
 
     const path_source = __dirname + "/tmp/" + source_file.name;
-    const path_dataset = __dirname + "/tmp/" + dataset_file.name;
 
     await source_file.mv(path_source)
-    await dataset_file.mv(path_dataset)
 
     // FUTURE IMPROVEMENTS: Parse iSee Data to ML Lib Format
     let ai_task = usecase.settings.ai_task[usecase.settings.ai_task.length - 1];
     let dataset_type = usecase.settings.dataset_type;
     let backend = req.body.backend;
-
-    // console.log(JSON.stringify(convert_attributes(updatedData.attributes)))
-    // return false;
 
     // Handle Model Upload
     var data_source = new FormData();
@@ -349,7 +341,7 @@ module.exports.updateModel = async (req, res) => {
       "model_task": ai_task,
       "dataset_type": dataset_type,
       "isPublic" : false,
-      "attributes": convert_attributes(updatedData.attributes)
+      "attributes": {}
     }
 
     console.log("------- model_params ------")
@@ -359,12 +351,7 @@ module.exports.updateModel = async (req, res) => {
     data_source.append('info', JSON.stringify(model_params));
     data_source.append('file', fs.createReadStream(path_source));
 
-
     let method = "POST";
-
-    if (updatedData.completed) {
-      method = "PUT";
-    }
 
     var upload_source = {
       method: method,
@@ -384,7 +371,68 @@ module.exports.updateModel = async (req, res) => {
     let response = await axios(upload_source)
 
     console.log(response.data)
-    // Handle Dataset Upload
+
+    updatedData["source_file"] = response.data
+    updatedData["completed"] = true; // FORCE COMPLETE AFTER UPLOAD TO PREVENT UPDATES
+
+    const result = await Usecase.findByIdAndUpdate(id, { model: updatedData }, options);
+    if (result) {
+      fs.unlink(path_source, function () {
+        console.log("File was deleted")
+      });
+      res.send(updatedData);
+    } else {
+      res.status(404).json({ message: "Usecase not found" });
+    }
+  } catch (error) {
+    console.log(error)
+    res.status(400).json({ message: error.message })
+  }
+}
+
+
+module.exports.updateDataset = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const options = { new: true };
+
+    const usecase = await Usecase.findById(req.params.id);
+
+    let updatedData = {
+      ...usecase.model
+    }
+
+    updatedData["attributes"] = JSON.parse(req.body.attributes)
+
+    let dataset_file = req.files.dataset_file;
+
+    const path_dataset = __dirname + "/tmp/" + dataset_file.name;
+
+    await dataset_file.mv(path_dataset)
+
+    // Handle Model Upload
+    var data_source = new FormData();
+    data_source.append('id', id);
+    data_source.append('attributes', JSON.stringify(convert_attributes(updatedData.attributes)));
+
+    var upload_source = {
+      method: "POST",
+      url: MODELAPI_URL + 'config',
+      'maxContentLength': Infinity,
+      'maxBodyLength': Infinity,
+      headers: {
+        'Accept': '*/*',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Connection': 'keep-alive',
+        'Content-Type': 'application/json',
+        ...data_source.getHeaders()
+      },
+      data: data_source
+    };
+
+    let response = await axios(upload_source)
+    console.log(response.data)
+
     var data_dataset = new FormData();
     data_dataset.append('id', id);
     data_dataset.append('file', fs.createReadStream(path_dataset));
@@ -402,22 +450,22 @@ module.exports.updateModel = async (req, res) => {
 
     const responsedataset = await axios(upload_dataset);
     console.log(responsedataset.data)
-    updatedData["dataset_file"] = responsedataset.data
-    updatedData["source_file"] = response.data
-    updatedData["completed"] = true; // FORCE COMPLETE AFTER UPLOAD TO PREVENT UPDATES
+    if(responsedataset.data == "Dataset uploaded successfully." || responsedataset.data  == "Dataset uploaded successfully"){
+      updatedData["dataset_file"] = responsedataset.data
 
-    const result = await Usecase.findByIdAndUpdate(id, { model: updatedData }, options);
-    if (result) {
-      fs.unlink(path_source, function () {
-        console.log("File was deleted")
-      });
-      fs.unlink(path_dataset, function () {
-        console.log("File was deleted")
-      });
-      res.send(updatedData);
-    } else {
-      res.status(404).json({ message: "Usecase not found" });
+      const result = await Usecase.findByIdAndUpdate(id, { model: updatedData }, options);
+      if (result) {
+        fs.unlink(path_dataset, function () {
+          console.log("File was deleted")
+        });
+        res.send(updatedData);
+      } else {
+        res.status(404).json({ message: "Usecase not found" });
+      }
+    } else{
+      res.status(500).json({ message: responsedataset.data });
     }
+
   } catch (error) {
     console.log(error)
     res.status(400).json({ message: error.message })
