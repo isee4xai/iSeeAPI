@@ -28,7 +28,7 @@ const users = require('./src/routes/users');
 
 const authJwt = require('./src/middlewares/authJWT');
 const interaction = require('./src/routes/interaction');
-const stats = require('./src/routes/stats');
+const analytics = require('./src/routes/analytics');
 const trees = require('./src/routes/trees');
 const explainers = require('./src/routes/explainers');
 const cbr_cycle = require('./src/routes/cbr_cycle');
@@ -77,7 +77,7 @@ app.use('/api/interaction/', [authJwt.verifyToken], interaction);
 
 app.use('/api/questionnaire/', questionnaire)
 app.use('/api/user/', users)
-app.use('/api/stats/', stats)
+app.use('/api/analytics/', analytics)
 
 // For Explainer Related
 app.use('/api/explainers/', explainers)

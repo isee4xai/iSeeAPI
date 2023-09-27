@@ -41,11 +41,6 @@ The iSee API serves as the backbone of the entire iSee Platform, expertly managi
 - Get All: `GET /interaction/`
 - Add New: `POST /interaction/`
 
-#### Stats
-
-- Get Global Stats: `GET /stats/usecases/:id`
-- Get Intent Stats: `GET /stats/usecases/:id/persona/:personaId/:intent/`
-
 ### Setup
 
 ```
