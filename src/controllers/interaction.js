@@ -43,6 +43,15 @@ module.exports.findAll = async (req, res) => {
   }
 };
 
+module.exports.findByVersion = async (req, res) => {
+  try {
+    const interaction = await Interaction.find({ usecase: req.params.id, usecase_version: req.params.version}, ['user', 'createdAt', 'usecase_version']).populate('user').sort({ createdAt: "desc" });
+    res.json(interaction);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports.getInteractionJSON = async (req, res) => {
   try {
     const interaction = await Interaction.findById(req.params.interactionId);
