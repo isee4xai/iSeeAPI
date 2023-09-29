@@ -1,14 +1,25 @@
 const moment = require('moment');
 
 function diffTimes(start, end) {
-    const timeDifferenceInSeconds = moment(end).diff(moment(start), 'seconds');
-    return timeDifferenceInSeconds;
+    const timeDifferenceInSeconds = moment(end).diff(moment(start), 'milliseconds');
+    return parseFloat((timeDifferenceInSeconds / 1000).toFixed(1));
 }
 
+const nodeMap = {
+    "https://www.w3id.org/iSeeOnto/BehaviourTree#GreeterNode": "Greet",
+    "https://www.w3id.org/iSeeOnto/BehaviourTree#PersonaQuestionNode": "Persona Selection",
+    "https://www.w3id.org/iSeeOnto/BehaviourTree#TargetTypeQuestionNode": "Target type",
+    "https://www.w3id.org/iSeeOnto/BehaviourTree#TargetQuestionNode": "Target",
+    "https://www.w3id.org/iSeeOnto/BehaviourTree#NeedQuestionNode": "Intent",
+    "https://www.w3id.org/iSeeOnto/BehaviourTree#ExplainerNode": "Explainer",
+    "https://www.w3id.org/iSeeOnto/BehaviourTree#EvaluationQuestionNode": "Evaluation",
+    "https://www.w3id.org/iSeeOnto/BehaviourTree#CompleteNode": "Complete"
+}
 
 function evalQuestions(content) {
-    const qCounts = {};
+    const queR = {};
     const dimQ = {};
+    const queT = {};
     const execs = content.interaction.executions;
 
     const evalExecs = execs.filter(exe => exe["https://www.w3id.org/iSeeOnto/BehaviourTreeExecution#enacted"]
@@ -20,6 +31,9 @@ function evalQuestions(content) {
         const q = gen.filter(g => g["https://www.w3id.org/iSeeOnto/BehaviourTree#pairKey"] === "question")
             .map(g => g["https://www.w3id.org/iSeeOnto/BehaviourTree#pair_value_object"]["content"]);
 
+        const t = gen.filter(g => g["https://www.w3id.org/iSeeOnto/BehaviourTree#pairKey"] === "question")
+            .map(g => g["https://www.w3id.org/iSeeOnto/BehaviourTree#pair_value_object"]["responseType"]);
+
         const d = gen.filter(g => g["https://www.w3id.org/iSeeOnto/BehaviourTree#pairKey"] === "question")
             .map(g => g["https://www.w3id.org/iSeeOnto/BehaviourTree#pair_value_object"]["dimension"]);
 
@@ -27,7 +41,11 @@ function evalQuestions(content) {
             .map(g => g["https://www.w3id.org/iSeeOnto/BehaviourTree#pair_value_object"]["content"]);
 
         if (q.length > 0 && v.length > 0 && d.length > 0 && d[0]) {
-            qCounts[q[0]] = v[0];
+            queR[q[0]] = v[0];
+        }
+
+        if (q.length > 0 && t.length > 0 && d.length > 0 && d[0]) {
+            queT[q[0]] = t[0];
         }
 
         if (q.length > 0 && d.length > 0 && d[0]) {
@@ -38,7 +56,7 @@ function evalQuestions(content) {
         }
     }
 
-    return [qCounts, dimQ];
+    return [queR, queT, dimQ];
 }
 
 function explainers(content) {
@@ -163,7 +181,10 @@ function intentQuestionsList(contents) {
         }
     }
 
-    return {"question_count":qCountsAgg};
+    return Object.entries(qCountsAgg).map(([key, value]) => ({
+        label: key,
+        value: value,
+    }));
 }
 
 
@@ -171,21 +192,29 @@ function userTimesList(contents) {
     const nodeTypes = [
         "https://www.w3id.org/iSeeOnto/BehaviourTree#GreeterNode",
         "https://www.w3id.org/iSeeOnto/BehaviourTree#PersonaQuestionNode",
-        "https://www.w3id.org/iSeeOnto/BehaviourTree#TargetTypeQuestionNode",
+        // "https://www.w3id.org/iSeeOnto/BehaviourTree#TargetTypeQuestionNode",
         "https://www.w3id.org/iSeeOnto/BehaviourTree#TargetQuestionNode",
         "https://www.w3id.org/iSeeOnto/BehaviourTree#NeedQuestionNode",
         "https://www.w3id.org/iSeeOnto/BehaviourTree#ExplainerNode",
-        "https://www.w3id.org/iSeeOnto/BehaviourTree#EvaluationQuestionNode",
-        "https://www.w3id.org/iSeeOnto/BehaviourTree#CompleteNode"
+        "https://www.w3id.org/iSeeOnto/BehaviourTree#EvaluationQuestionNode"//,
+        //"https://www.w3id.org/iSeeOnto/BehaviourTree#CompleteNode"
     ];
 
-    const uTimesAgg = {};
+    const uTimesAgg = [];
 
     for (const c in contents) {
-        uTimesAgg[contents[c].user] = userTimes(contents[c], nodeTypes);
+        times = userTimes(contents[c], nodeTypes);
+        for (const t in times) {
+            uTimesAgg.push({
+                user: c,
+                type: nodeMap[times[t][0]],
+                diff: times[t][1],
+                data: times[t][2],
+                order: t
+            });
+        }
     }
-
-    return {"person_times":uTimesAgg};
+    return uTimesAgg;
 }
 
 
@@ -200,36 +229,48 @@ function explainersList(contents) {
         }
     }
 
-    return {"explainer_count":eCountsAgg};
+    return Object.entries(eCountsAgg).map(([key, value]) => ({
+        label: key,
+        value: value,
+    }));
 }
 
 
 function evalQuestionsList(contents) {
-    const qCountsList = {};
-    const dimQList = {};
-
+    const dimQC = {};
     for (const c in contents) {
-        const [qCounts, dimQ] = evalQuestions(contents[c]);
 
-
-        for (const q in qCounts) {
-            qCountsList[q] = qCountsList[q] || [];
-            qCountsList[q].push(qCounts[q]);
-        }
-
+        const [queR, queT, dimQ] = evalQuestions(contents[c]);
         for (const d in dimQ) {
-            dimQList[d] = dimQList[d] || new Set();
-            for (const item of dimQ[d]) {
-                dimQList[d].add(item);
+            dimQC[d] = dimQC[d] || {};
+            _qs = dimQ[d];
+            for (const q in _qs) {
+                _q = _qs[q];
+                _r = queR[_q];
+                _t = queT[_q];
+                dimQC[d][_q] = dimQC[d][_q] || {};
+                dimQC[d][_q]["type"] = _t;
+                dimQC[d][_q]["values"] = dimQC[d][_q]["values"] || {};
+                dimQC[d][_q]["values"][_r] = dimQC[d][_q]["values"][_r] || 0;
+                dimQC[d][_q]["values"][_r] = dimQC[d][_q]["values"][_r] + 1;
             }
         }
     }
-
-    return {"question_count":qCountsList, "dimension_questions":dimQList};
+    for (const d in dimQC) {
+        dimQC[d] = Object.entries(dimQC[d]).map((prop) => ({
+            question: prop[0],
+            type: prop[1].type,
+            values: Object.entries(prop[1].values).map(([key, value]) => ({
+                label: key,
+                value: value,
+            }))
+        }));
+    }
+    return dimQC;
 }
 
 
-function personasList(contents){
+function personasList(contents) {
     const pContentsList = {};
     for (const c in contents) {
         for (const exe of contents[c].interaction.executions) {
@@ -247,34 +288,48 @@ function personasList(contents){
     return pContentsList
 }
 
-function interactionCounts(contents){
-    const start = moment(contents[contents.length-1].createdAt);
+function interactionCounts(contents) {
+    const start = moment(contents[contents.length - 1].createdAt);
     const end = moment(contents[0].createdAt);
     let currentDay = moment(start);
     const intCounts = {};
-    // Iterate through each day
     while (currentDay.isSameOrBefore(end, 'day')) {
         const currentDate = currentDay.format('YYYY-MM-DD');
         const count = contents.filter(item => moment(item.createdAt).isSame(currentDay, 'day')).length;
         intCounts[currentDate] = count;
         currentDay.add(1, 'day');
     }
-    return intCounts;
+    return Object.entries(intCounts).map(([key, value]) => ({
+        label: key,
+        value: value,
+    }));
+}
+
+function overallExperience(contents) {
+    return false;
 }
 
 function analytics(contents) {
+
     const results = {}
     const pContents = personasList(contents);
     results["interactions_per_date"] = interactionCounts(contents);
-
-    for (const p in pContents){
+    results["overall_experience"] = overallExperience(contents);
+    results["interactions_per_persona"] = {}
+    results["personas"] = {}
+    for (const p in pContents) {
         const pContent = pContents[p];
-        results[p] = {};
-        results[p]["evaluations"] = evalQuestionsList(pContent);
-        results[p]["intents"] = intentQuestionsList(pContent);
-        results[p]["explainers"] = explainersList(pContent);
-        results[p]["experiences"] = userTimesList(pContent);
+        results["interactions_per_persona"][p] = pContent.length;
+        results["personas"][p] = {};
+        results["personas"][p]["evaluations"] = evalQuestionsList(pContent);
+        results["personas"][p]["intents"] = intentQuestionsList(pContent);
+        results["personas"][p]["explainers"] = explainersList(pContent);
+        results["personas"][p]["experiences"] = userTimesList(pContent);
     }
+    results["interactions_per_persona"] = Object.entries(results["interactions_per_persona"]).map(([key, value]) => ({
+        label: key,
+        value: value,
+    }));
     return results;
 }
 
