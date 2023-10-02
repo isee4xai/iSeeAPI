@@ -38,21 +38,30 @@ function evalQuestions(content) {
             .map(g => g["https://www.w3id.org/iSeeOnto/BehaviourTree#pair_value_object"]["dimension"]);
 
         const v = gen.filter(g => g["https://www.w3id.org/iSeeOnto/BehaviourTree#pairKey"] === "variable")
-            .map(g => g["https://www.w3id.org/iSeeOnto/BehaviourTree#pair_value_object"]["content"]);
+            .map(g => g["https://www.w3id.org/iSeeOnto/BehaviourTree#pair_value_object"]);
 
-        if (q.length > 0 && v.length > 0 && d.length > 0 && d[0]) {
-            queR[q[0]] = v[0];
-        }
-
-        if (q.length > 0 && t.length > 0 && d.length > 0 && d[0]) {
-            queT[q[0]] = t[0];
-        }
-
-        if (q.length > 0 && d.length > 0 && d[0]) {
+        if (q && q[0] && d && d[0] && v && v[0] && t && t[0]){
+            if (Array.isArray(v[0])){
+                const vals = v[0].map(_v => _v["content"]);
+                queR[q[0]] = vals;
+            }
+            else if (t[0] == 'Number'){
+                const min = gen.filter(g => g["https://www.w3id.org/iSeeOnto/BehaviourTree#pairKey"] === "question")
+                    .map(g => g["https://www.w3id.org/iSeeOnto/BehaviourTree#pair_value_object"]["validators"]["min"])[0];
+                const max = gen.filter(g => g["https://www.w3id.org/iSeeOnto/BehaviourTree#pairKey"] === "question")
+                    .map(g => g["https://www.w3id.org/iSeeOnto/BehaviourTree#pair_value_object"]["validators"]["max"])[0];
+                const val = v[0]["content"];
+                queR[q[0]] = [val, min, max];
+            }
+            else{
+                const vals = [v[0]["content"]];
+                queR[q[0]] = vals;
+            }
             if (!dimQ[d[0]]) {
                 dimQ[d[0]] = [];
             }
             dimQ[d[0]].push(q[0]);
+            queT[q[0]] = t[0];
         }
     }
 
@@ -239,7 +248,6 @@ function explainersList(contents) {
 function evalQuestionsList(contents) {
     const dimQC = {};
     for (const c in contents) {
-
         const [queR, queT, dimQ] = evalQuestions(contents[c]);
         for (const d in dimQ) {
             dimQC[d] = dimQC[d] || {};
@@ -250,9 +258,22 @@ function evalQuestionsList(contents) {
                 _t = queT[_q];
                 dimQC[d][_q] = dimQC[d][_q] || {};
                 dimQC[d][_q]["type"] = _t;
+                
                 dimQC[d][_q]["values"] = dimQC[d][_q]["values"] || {};
-                dimQC[d][_q]["values"][_r] = dimQC[d][_q]["values"][_r] || 0;
-                dimQC[d][_q]["values"][_r] = dimQC[d][_q]["values"][_r] + 1;
+                
+                if (_t === 'Number'){
+                    dimQC[d][_q]["values"][_r[0]] = dimQC[d][_q]["values"][_r[0]] || 0;
+                    dimQC[d][_q]["values"][_r[0]] = dimQC[d][_q]["values"][_r[0]] + 1;
+                    // TODO gauge plot with normalised values
+                    // dimQC[d][_q]["values"]["min"] = _r[1];
+                    // dimQC[d][_q]["values"]["max"] = _r[2];
+                }
+                else{
+                    for (const i in _r){
+                        dimQC[d][_q]["values"][_r[i]] = dimQC[d][_q]["values"][_r[i]] || 0;
+                        dimQC[d][_q]["values"][_r[i]] = dimQC[d][_q]["values"][_r[i]] + 1;
+                    }
+                }
             }
         }
     }
