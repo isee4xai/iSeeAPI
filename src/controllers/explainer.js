@@ -44,3 +44,13 @@ module.exports.create = async (req, res) => {
 }
 
 
+module.exports.similarities = async (req, res) => {
+    try {
+        console.log(ONTOAPI_URL + 'explainers/similarities');
+        const response = await axios.get(ONTOAPI_URL + 'explainers/similarities')
+        res.json(response.data);
+    }
+    catch (error) {
+        res.status(500).json({ message: error.message })
+    }
+}
