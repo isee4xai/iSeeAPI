@@ -9,5 +9,7 @@ const explainerctrl = require('../controllers/explainer');
 router.get('/', explainerctrl.list); // Routed to the Explainer API
 router.get('/meta', explainerctrl.getMeta); // Routed to the Explainer API
 router.post('/', explainerctrl.create);
-router.get('/similarities', explainerctrl.similarities);
+router.get('/fieldsFiltered', explainerctrl.explainerFieldsFiltered); //for testing
+router.get('/reuseSupport', explainerctrl.reuseSupport); //for testing
+router.get('/explainersExtended', explainerctrl.explainersExtended); //for testing
 module.exports = router;
