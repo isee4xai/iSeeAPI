@@ -42,33 +42,3 @@ module.exports.create = async (req, res) => {
         res.status(500).json({ message: error.message })
     }
 }
-
-module.exports.reuseSupport = async (req, res) => {
-    try {
-        const response = await axios.get(ONTOAPI_URL + 'reuse/ReuseSupport')
-        res.json(response.data)
-    }
-    catch (error) {
-        res.status(500).json({ message: error.message })
-    }
-}
-
-module.exports.explainerFieldsFiltered =  async (req, res) => {
-    try {
-        const response = await axios.get(ONTOAPI_URL + 'reuse/ExplainerFieldsFiltered')
-        res.json(response.data)
-    }
-    catch (error) {
-        res.status(500).json({ message: error.message })
-    }
-}
-
-module.exports.explainersExtended =  async (req, res) => {
-    try {
-        const response = await axios.get(ONTOAPI_URL + 'reuse/ExplainersExtended')
-        res.json(response.data)
-    }
-    catch (error) {
-        res.status(500).json({ message: error.message })
-    }
-}
