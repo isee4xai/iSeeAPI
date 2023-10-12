@@ -3,6 +3,8 @@ var axios = require('axios');
 const Tree = require('../models/tree');
 const { v4: uuidv4, v4 } = require("uuid");
 
+const ONTOAPI_URL = process.env.ONTOAPI_URL;
+
 const CBRAPI_URL = process.env.CBRAPI_URL;
 const CBRAPI_PROJECT = process.env.CBRAPI_PROJECT;
 const CBRAPI_TOKEN = process.env.CBRAPI_TOKEN;
@@ -43,7 +45,7 @@ module.exports.query = async (req, res) => {
             // let data = new Tree(strategy.Solution)
             const solution_bt = {
                 "name": "Tree",
-                "usecase":usecase._id ,
+                "usecase": usecase._id,
                 "persona": persona._id,
                 "intent": selected_intent.id,
                 "description": "",
@@ -60,7 +62,7 @@ module.exports.query = async (req, res) => {
                     if (t.nodes[n].Concept == "User Question") {
                         var updated_questions = ""
                         selected_intent.questions.forEach(qTemp => {
-                            updated_questions += qTemp.text+";"
+                            updated_questions += qTemp.text + ";"
                         });
                         t.nodes[n].params.Question.value = updated_questions
                         // console.log(t.nodes[n])
@@ -156,6 +158,7 @@ module.exports.reuse = async (req, res) => {
             },
             data: {
                 "reuse_type": "_isee",
+                "reuse_feature": "transform",
                 "neighbours": neighbours,
                 "query_case": {
                     "UserIntent": selected_intent.name,
@@ -179,7 +182,7 @@ module.exports.reuse = async (req, res) => {
         const solution_bt = {
             "name": "Tree",
             "description": "",
-            "usecase":usecase._id ,
+            "usecase": usecase._id,
             "persona": persona._id,
             "intent": selected_intent.id,
             "path": "b3projects-" + v4(),
@@ -263,24 +266,9 @@ module.exports.setDefault = async (req, res) => {
 }
 
 
-module.exports.queryFromTree = async (req, res) => {
+async function retrieve(usecase, persona, intent) {
     try {
-        const usecase = await Usecase.findById(req.body.usecaseId);
-
-        const tree = await Tree.findOne({_id: req.body.treeId, usecase: usecase});
-
-        if(!tree || !usecase){
-            res.status(404).json({ message: "Not Found! Check the ID" })
-        }
-
-        let persona = usecase.personas.id(tree.persona);
-        const intentIndex = persona.intents.map((e) => e.id).indexOf(tree.intent);
-        let selected_intent = persona.intents[intentIndex]
-
-        // Temp update topK
-        selected_intent.strategy_topk = req.body.topk;
-
-        let request_body = generateQueryObject(usecase, persona, selected_intent)
+        let request_body = generateQueryObject(usecase, persona, intent)
 
         var config = {
             method: 'post',
@@ -298,7 +286,7 @@ module.exports.queryFromTree = async (req, res) => {
             const solution_bt = {
                 "name": "Tree",
                 score__: strategy.score__,
-                "usecase":usecase._id ,
+                "usecase": usecase._id,
                 "persona": persona._id,
                 "intent": selected_intent.id,
                 "description": "",
@@ -307,7 +295,135 @@ module.exports.queryFromTree = async (req, res) => {
             }
             topTrees.push(solution_bt)
         }));
-        res.status(200).json(topTrees)
+        return topTrees
+    }
+    catch (error) {
+        return { message: error.message }
+    }
+}
+
+module.exports.explainerApplicability = async (req, res) => {
+    try {
+        const usecase = await Usecase.findById(req.params.id);
+        const reuse_support_props = await axios.get(ONTOAPI_URL + '/reuse/ReuseSupport');
+
+        if (!usecase) {
+            res.status(404).json({ message: "Not Found! Check the usecase ID" })
+        }
+
+        var config = {
+            method: 'post',
+            url: CBRAPI_URL + 'reuse',
+            headers: {
+                'Accept': 'application/json',
+                'Authorization': CBRAPI_TOKEN,
+            },
+            data: {
+                "reuse_type": "_isee",
+                "reuse_feature": "applicability",
+                "query_case": usecase,
+                "ontology_props": reuse_support_props,
+                "explain": 'true'
+            }
+        };
+
+        const response = await axios(config)
+        res.status(200).json(response.data)
+    }
+    catch (error) {
+        res.status(400).json({ message: error.message })
+    }
+}
+
+module.exports.substituteExplainer = async (req, res) => {
+    try {
+        const usecase = await Usecase.findById(req.params.id);
+        const query_explainer = req.body.explainer;
+        const criteria = req.body.criteria;
+        const reuse_support_props = await axios.get(ONTOAPI_URL + '/reuse/ReuseSupport');
+
+        if (!usecase) {
+            res.status(404).json({ message: "Not Found! Check the usecase ID" })
+        }
+
+        var config = {
+            method: 'post',
+            url: CBRAPI_URL + 'reuse',
+            headers: {
+                'Accept': 'application/json',
+                'Authorization': CBRAPI_TOKEN,
+            },
+            data: {
+                "reuse_type": "_isee",
+                "reuse_feature": "substitute",
+                "query_case": usecase,
+                "ontology_props": reuse_support_props,
+                "explain": 'true',
+                "query_explainer": query_explainer,
+                "criteria": criteria
+            }
+        };
+
+        const response = await axios(config)
+        res.status(200).json(response.data)
+    }
+    catch (error) {
+        res.status(400).json({ message: error.message })
+    }
+}
+
+module.exports.substituteSubtree = async (req, res) => {
+    try {
+        const usecase = await Usecase.findById(req.params.id);
+        if (!usecase) {
+            res.status(404).json({ message: "Not Found! Check the usecase ID" })
+        }
+
+        const tree = await Tree.findOne({ _id: req.body.treeId, usecase: usecase });
+        let persona = usecase.personas.id(tree.persona);
+        const intentIndex = persona.intents.map((e) => e.id).indexOf(tree.intent);
+        let selected_intent = persona.intents[intentIndex];
+        selected_intent.strategy_topk = -1;
+        const neighbours = await retrieve(usecase, persona, selected_intent);
+        
+        const selected_subtree_id = req.body.subtreeId;
+        let selected_subtree = null;
+        tree.data.trees.forEach(t => {
+            for (var n in t.nodes) {
+                if (t.nodes[n].id == selected_subtree_id) {
+                    selected_subtree = t.nodes[n];
+                }
+            }
+        });
+
+        if (!selected_subtree) {
+            res.status(404).json({ message: "Not Found! Check the tree ID" })
+        }
+
+        const reuse_support_props = await axios.get(ONTOAPI_URL + '/reuse/ReuseSupport');
+
+        var config = {
+            method: 'post',
+            url: CBRAPI_URL + 'reuse',
+            headers: {
+                'Accept': 'application/json',
+                'Authorization': CBRAPI_TOKEN,
+            },
+            data: {
+                "reuse_type": "_isee",
+                "reuse_feature": "substitute",
+                "query_tree": tree.data,
+                "query_subtree": selected_subtree,
+                "query_case": usecase,
+                "ontology_props": reuse_support_props,
+                "neighbours": neighbours,
+                "criteria": req.body.criteria,
+                "explain": 'true'
+            }
+        };
+
+        const response = await axios(config)
+        res.status(200).json(response.data)
     }
     catch (error) {
         res.status(400).json({ message: error.message })

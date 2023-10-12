@@ -15,7 +15,7 @@ router.post('/Projects', treectrl.create);
 router.patch('/Projects/:id', treectrl.update);
 
 // This endpoint retrieve topK from the tree
-router.post('/cbr_retrieve', cbrctrl.queryFromTree);
+// router.post('/cbr_retrieve', cbrctrl.queryFromTree);
 
 
 module.exports = router;
