@@ -9,6 +9,8 @@ router.post('/:id/persona/:personaId/intent_default/:intentId/strategy/:strategy
 
 // CBR Reuse Functions
 router.post('/:id/persona/:personaId/intent/:intentId/reuse', [isCompanyUsecase], cbr_cycle_ctrl.reuse);
-
+router.post('/:id/applicability', cbr_cycle_ctrl.explainerApplicability);
+router.post('/:id/substituteSubtree', cbr_cycle_ctrl.substituteSubtree);
+router.post('/:id/substituteExplainer', cbr_cycle_ctrl.substituteExplainer);
 
 module.exports = router;
