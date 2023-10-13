@@ -327,11 +327,12 @@ module.exports.explainerApplicability = async (req, res) => {
             }
         };
 
-        const response = await axios(config)
-        res.status(200).json(response.data)
+        const response = await axios(config);
+        console.log(response);
+        res.status(200).json(response.data);
     }
     catch (error) {
-        res.status(400).json({ message: error.message })
+        res.status(400).json({ message: error.message });
     }
 }
 
@@ -365,6 +366,7 @@ module.exports.substituteExplainer = async (req, res) => {
         };
 
         const response = await axios(config)
+        console.log(response);
         res.status(200).json(response.data)
     }
     catch (error) {
