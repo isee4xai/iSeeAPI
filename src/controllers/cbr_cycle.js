@@ -336,7 +336,6 @@ module.exports.explainerApplicability = async (req, res) => {
 
 module.exports.substituteExplainer = async (req, res) => {
     try {
-        console.log(req.body);
         const usecase = await Usecase.findById(req.params.id);
         const query_explainer = req.body.explainer;
         const criteria = req.body.criteria;
@@ -365,7 +364,6 @@ module.exports.substituteExplainer = async (req, res) => {
         };
 
         const response = await axios(config)
-        console.log(response);
         res.status(200).json(response.data)
     }
     catch (error) {
@@ -375,6 +373,7 @@ module.exports.substituteExplainer = async (req, res) => {
 
 module.exports.substituteSubtree = async (req, res) => {
     try {
+        console.log(req.body);
         const usecase = await Usecase.findById(req.params.id);
         if (!usecase) {
             res.status(404).json({ message: "Not Found! Check the usecase ID" })
@@ -423,7 +422,8 @@ module.exports.substituteSubtree = async (req, res) => {
             }
         };
 
-        const response = await axios(config)
+        const response = await axios(config);
+        console.log(response.data);
         res.status(200).json(response.data)
     }
     catch (error) {
