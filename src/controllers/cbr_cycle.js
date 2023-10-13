@@ -268,8 +268,8 @@ module.exports.setDefault = async (req, res) => {
 
 async function retrieve(usecase, persona, intent) {
     try {
-        let request_body = generateQueryObject(usecase, persona, intent)
-
+        let request_body = generateQueryObject(usecase, persona, intent);
+        console.log(request_body);
         var config = {
             method: 'post',
             url: CBRAPI_URL + 'retrieve',
@@ -281,7 +281,7 @@ async function retrieve(usecase, persona, intent) {
         };
 
         const response = await axios(config)
-        console.log("retrieve response", response);
+        console.log("retrieve response", response.data);
         let topTrees = []
         await Promise.all(response.data.bestK.map(async (strategy) => {
             const solution_bt = {
@@ -289,7 +289,7 @@ async function retrieve(usecase, persona, intent) {
                 score__: strategy.score__,
                 "usecase": usecase._id,
                 "persona": persona._id,
-                "intent": selected_intent.id,
+                "intent": intent.id,
                 "description": "",
                 "path": "b3projects-" + v4(),
                 "data": strategy.Solution
@@ -297,7 +297,7 @@ async function retrieve(usecase, persona, intent) {
             topTrees.push(solution_bt)
         }));
         console.log("topTrees", topTrees);
-        return topTrees
+        return topTrees;
     }
     catch (error) {
         return { message: error.message }
@@ -389,7 +389,7 @@ module.exports.substituteSubtree = async (req, res) => {
         console.log("intentIndex", intentIndex);
         let selected_intent = persona.intents[intentIndex];
         console.log("selected_intent", selected_intent);
-        selected_intent.strategy_topk = 20;
+        selected_intent.strategy_topk = req.body.k;
         const neighbours = await retrieve(usecase, persona, selected_intent);
         console.log("neighbours", neighbours);
         const selected_subtree_id = req.body.subtreeId;
@@ -437,7 +437,7 @@ module.exports.substituteSubtree = async (req, res) => {
     }
 }
 
-function generateQueryObject(usecase, persona, selected_intent) {
+function generateQueryObject(usecase, persona, intent) {
     let request_body = {
         "data": [
             {
@@ -560,7 +560,7 @@ function generateQueryObject(usecase, persona, selected_intent) {
                 "weight": 1,
                 "unknown": false,
                 "strategy": "Best Match",
-                "value": selected_intent.name
+                "value": intent.name
             },
             {
                 "name": "Solution",
@@ -571,7 +571,7 @@ function generateQueryObject(usecase, persona, selected_intent) {
                 "strategy": "Best Match"
             }
         ],
-        "topk": selected_intent.strategy_topk,
+        "topk": intent.strategy_topk,
         "globalSim": "Weighted Sum",
         "explanation": true,
         "projectId": CBRAPI_PROJECT
