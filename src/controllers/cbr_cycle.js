@@ -307,7 +307,7 @@ module.exports.explainerApplicability = async (req, res) => {
         console.log("step 1", req.params);
         const usecase = await Usecase.findById(req.params.id);
         const reuse_support_props = await axios.get(ONTOAPI_URL + 'reuse/ReuseSupport');
-        console.log("step 2", ONTOAPI_URL + 'reuse/ReuseSupport');
+        console.log("step 2", ONTOAPI_URL + 'reuse/ReuseSupport', reuse_support_props.data);
         if (!usecase) {
             res.status(404).json({ message: "Not Found! Check the usecase ID" })
         }
@@ -323,7 +323,7 @@ module.exports.explainerApplicability = async (req, res) => {
                 "reuse_type": "_isee",
                 "reuse_feature": "applicability",
                 "query_case": usecase,
-                "ontology_props": reuse_support_props,
+                "ontology_props": reuse_support_props.data,
                 "explain": 'true'
             }
         };
