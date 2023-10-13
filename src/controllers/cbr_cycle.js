@@ -304,9 +304,10 @@ async function retrieve(usecase, persona, intent) {
 
 module.exports.explainerApplicability = async (req, res) => {
     try {
+        console.log("step 1", req.params);
         const usecase = await Usecase.findById(req.params.id);
-        const reuse_support_props = await axios.get(ONTOAPI_URL + '/reuse/ReuseSupport');
-
+        const reuse_support_props = await axios.get(ONTOAPI_URL + 'reuse/ReuseSupport');
+        console.log("step 2", ONTOAPI_URL + 'reuse/ReuseSupport');
         if (!usecase) {
             res.status(404).json({ message: "Not Found! Check the usecase ID" })
         }
@@ -328,7 +329,7 @@ module.exports.explainerApplicability = async (req, res) => {
         };
 
         const response = await axios(config);
-        console.log(response);
+        console.log("step 3", response);
         res.status(200).json(response.data);
     }
     catch (error) {
@@ -341,7 +342,7 @@ module.exports.substituteExplainer = async (req, res) => {
         const usecase = await Usecase.findById(req.params.id);
         const query_explainer = req.body.explainer;
         const criteria = req.body.criteria;
-        const reuse_support_props = await axios.get(ONTOAPI_URL + '/reuse/ReuseSupport');
+        const reuse_support_props = await axios.get(ONTOAPI_URL + 'reuse/ReuseSupport');
 
         if (!usecase) {
             res.status(404).json({ message: "Not Found! Check the usecase ID" })
