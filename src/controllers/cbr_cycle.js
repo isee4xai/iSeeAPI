@@ -268,6 +268,16 @@ module.exports.setDefault = async (req, res) => {
         let data = new Tree(solution_bt)
         save = await data.save();
 
+        selected_intent.strategies.forEach(function (strat) {
+            if (strat.id == req.params.strategyId) {
+                strat.selected = true;
+                strat.tree = save._id;
+                selected_intent.strategy_selected = strat.tree;
+            } else {
+                strat.selected = false;
+            }
+        });
+
         res.status(200).json(selected_intent)
     }
     catch (error) {
