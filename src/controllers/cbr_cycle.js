@@ -58,15 +58,6 @@ module.exports.query = async (req, res) => {
                     if (t.nodes[n].Concept == "Explanation Method") {
                         methods.push(t.nodes[n].Instance)
                     }
-                    // To support the new BT structure - beta
-                    // if (t.nodes[n].Concept == "User Question") {
-                    //     var updated_questions = ""
-                    //     selected_intent.questions.forEach(qTemp => {
-                    //         updated_questions += qTemp.text + ";"
-                    //     });
-                    //     t.nodes[n].params.Question.value = updated_questions
-                    //     // console.log(t.nodes[n])
-                    // }
                 }
             })
             let data = new Tree(solution_bt)
@@ -258,21 +249,24 @@ module.exports.setDefault = async (req, res) => {
 
         persona.intents[intentIndex] = selected_intent;
 
-        const save = await usecase.save();
+        let save = await usecase.save();
 
-        console.log("selected_tree", selected_tree);
-        const tree = await Tree.findOne({ _id: selected_tree, usecase: usecase });
-        console.log("tree", tree);
+        const solution_bt = await Tree.findOne({ _id: selected_tree, usecase: usecase });
 
-        // To support the new BT structure - beta
-        // if (t.nodes[n].Concept == "User Question") {
-        //     var updated_questions = ""
-        //     selected_intent.questions.forEach(qTemp => {
-        //         updated_questions += qTemp.text + ";"
-        //     });
-        //     t.nodes[n].params.Question.value = updated_questions
-        //     // console.log(t.nodes[n])
-        // }
+        solution_bt.data.trees.forEach(t => {
+            for (var n in t.nodes) {
+                if (t.nodes[n].Concept == "User Question") {
+                    var updated_questions = ""
+                    selected_intent.questions.forEach(qTemp => {
+                        updated_questions += qTemp.text + ";"
+                    });
+                    t.nodes[n].params.Question.value = updated_questions
+                }
+            }
+        });
+
+        let data = new Tree(solution_bt)
+        save = await data.save();
 
         res.status(200).json(selected_intent)
     }
