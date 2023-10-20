@@ -366,24 +366,17 @@ module.exports.substituteExplainer = async (req, res) => {
 
 module.exports.substituteSubtree = async (req, res) => {
     try {
-        console.log("req.body", req.body);
         const usecase = await Usecase.findById(req.params.id);
         if (!usecase) {
             res.status(404).json({ message: "Not Found! Check the usecase ID" })
         }
 
         const tree = await Tree.findOne({ _id: req.body.treeId, usecase: usecase });
-        console.log("tree", tree);
         let persona = usecase.personas.id(tree.persona);
-        console.log("persona", persona);
         const intentIndex = persona.intents.map((e) => e.id).indexOf(tree.intent);
-        console.log("intentIndex", intentIndex);
         let selected_intent = persona.intents[intentIndex];
-        console.log("selected_intent", selected_intent);
         selected_intent.strategy_topk = 10;
         const neighbours = await retrieve(usecase, persona, selected_intent);
-        console.log("neighbours", neighbours);
-        console.log("selected_subtree_id", req.body.subtreeId);
         
         const reuse_support_props = await axios.get(ONTOAPI_URL + 'reuse/ReuseSupport');
 
