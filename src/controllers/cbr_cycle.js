@@ -235,48 +235,19 @@ module.exports.setDefault = async (req, res) => {
         const intentIndex = persona.intents.map((e) => e.id).indexOf(req.params.intentId);
 
         let selected_intent = persona.intents[intentIndex]
-        let selected_tree = null;
 
         selected_intent.strategies.forEach(function (strat) {
             if (strat.id == req.params.strategyId) {
                 strat.selected = true;
                 selected_intent.strategy_selected = strat.tree;
-                selected_tree = strat.tree;
             } else {
                 strat.selected = false;
             }
-        });
+        })
 
         persona.intents[intentIndex] = selected_intent;
 
-        let save = await usecase.save();
-
-        const solution_bt = await Tree.findOne({ _id: selected_tree, usecase: usecase });
-
-        solution_bt.data.trees.forEach(t => {
-            for (var n in t.nodes) {
-                if (t.nodes[n].Concept == "User Question") {
-                    var updated_questions = ""
-                    selected_intent.questions.forEach(qTemp => {
-                        updated_questions += qTemp.text + ";"
-                    });
-                    t.nodes[n].params.Question.value = updated_questions
-                }
-            }
-        });
-
-        let data = new Tree(solution_bt)
-        save = await data.save();
-
-        selected_intent.strategies.forEach(function (strat) {
-            if (strat.id == req.params.strategyId) {
-                strat.selected = true;
-                strat.tree = save._id;
-                selected_intent.strategy_selected = strat.tree;
-            } else {
-                strat.selected = false;
-            }
-        });
+        const save = await usecase.save();
 
         res.status(200).json(selected_intent)
     }
