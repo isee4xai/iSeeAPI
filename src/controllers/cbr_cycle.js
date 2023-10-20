@@ -59,14 +59,14 @@ module.exports.query = async (req, res) => {
                         methods.push(t.nodes[n].Instance)
                     }
                     // To support the new BT structure - beta
-                    if (t.nodes[n].Concept == "User Question") {
-                        var updated_questions = ""
-                        selected_intent.questions.forEach(qTemp => {
-                            updated_questions += qTemp.text + ";"
-                        });
-                        t.nodes[n].params.Question.value = updated_questions
-                        // console.log(t.nodes[n])
-                    }
+                    // if (t.nodes[n].Concept == "User Question") {
+                    //     var updated_questions = ""
+                    //     selected_intent.questions.forEach(qTemp => {
+                    //         updated_questions += qTemp.text + ";"
+                    //     });
+                    //     t.nodes[n].params.Question.value = updated_questions
+                    //     // console.log(t.nodes[n])
+                    // }
                 }
             })
             let data = new Tree(solution_bt)
@@ -244,19 +244,35 @@ module.exports.setDefault = async (req, res) => {
         const intentIndex = persona.intents.map((e) => e.id).indexOf(req.params.intentId);
 
         let selected_intent = persona.intents[intentIndex]
+        let selected_tree = null;
 
         selected_intent.strategies.forEach(function (strat) {
             if (strat.id == req.params.strategyId) {
                 strat.selected = true;
                 selected_intent.strategy_selected = strat.tree;
+                selected_tree = strat.tree;
             } else {
                 strat.selected = false;
             }
-        })
+        });
 
         persona.intents[intentIndex] = selected_intent;
 
         const save = await usecase.save();
+
+        console.log("selected_tree", selected_tree);
+        const tree = await Tree.findOne({ _id: selected_tree, usecase: usecase });
+        console.log("tree", tree);
+
+        // To support the new BT structure - beta
+        // if (t.nodes[n].Concept == "User Question") {
+        //     var updated_questions = ""
+        //     selected_intent.questions.forEach(qTemp => {
+        //         updated_questions += qTemp.text + ";"
+        //     });
+        //     t.nodes[n].params.Question.value = updated_questions
+        //     // console.log(t.nodes[n])
+        // }
 
         res.status(200).json(selected_intent)
     }
@@ -389,23 +405,11 @@ module.exports.substituteSubtree = async (req, res) => {
         console.log("intentIndex", intentIndex);
         let selected_intent = persona.intents[intentIndex];
         console.log("selected_intent", selected_intent);
-        selected_intent.strategy_topk = req.body.k;
+        selected_intent.strategy_topk = 10;
         const neighbours = await retrieve(usecase, persona, selected_intent);
         console.log("neighbours", neighbours);
-        const selected_subtree_id = req.body.subtreeId;
-        let selected_subtree = null;
-        tree.data.trees.forEach(t => {
-            for (var n in t.nodes) {
-                if (t.nodes[n].id == selected_subtree_id) {
-                    selected_subtree = t.nodes[n];
-                }
-            }
-        });
-        console.log("selected_subtree", selected_subtree);
-        if (!selected_subtree) {
-            res.status(404).json({ message: "Not Found! Check the tree ID" })
-        }
-
+        console.log("selected_subtree_id", req.body.subtreeId);
+        
         const reuse_support_props = await axios.get(ONTOAPI_URL + 'reuse/ReuseSupport');
 
         var config = {
@@ -419,7 +423,7 @@ module.exports.substituteSubtree = async (req, res) => {
                 "reuse_type": "_isee",
                 "reuse_feature": "substitute",
                 "query_tree": tree.data,
-                "query_subtree": selected_subtree,
+                "query_subtree_id": req.body.subtreeId,
                 "query_case": usecase,
                 "ontology_props": reuse_support_props.data,
                 "neighbours": neighbours,
