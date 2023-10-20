@@ -260,7 +260,6 @@ module.exports.setDefault = async (req, res) => {
 async function retrieve(usecase, persona, intent) {
     try {
         let request_body = generateQueryObject(usecase, persona, intent);
-        console.log(request_body);
         var config = {
             method: 'post',
             url: CBRAPI_URL + 'retrieve',
@@ -389,7 +388,7 @@ module.exports.substituteSubtree = async (req, res) => {
                 "reuse_type": "_isee",
                 "reuse_feature": "substitute",
                 "query_tree": tree.data,
-                "query_subtree_id": req.body.subtreeId,
+                "query_subtree": req.body.subtreeId,
                 "query_case": usecase,
                 "ontology_props": reuse_support_props.data,
                 "neighbours": neighbours,
