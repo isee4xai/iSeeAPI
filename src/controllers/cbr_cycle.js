@@ -393,7 +393,8 @@ module.exports.substituteSubtree = async (req, res) => {
                 "ontology_props": reuse_support_props.data,
                 "neighbours": neighbours,
                 "criteria": req.body.criteria,
-                "explain": 'true'
+                "explain": 'true',
+                "k": req.body.k
             }
         };
 
