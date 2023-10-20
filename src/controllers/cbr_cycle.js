@@ -272,7 +272,6 @@ async function retrieve(usecase, persona, intent) {
         };
 
         const response = await axios(config)
-        console.log("retrieve response", response.data);
         let topTrees = []
         await Promise.all(response.data.bestK.map(async (strategy) => {
             const solution_bt = {
@@ -287,7 +286,6 @@ async function retrieve(usecase, persona, intent) {
             }
             topTrees.push(solution_bt)
         }));
-        console.log("topTrees", topTrees);
         return topTrees;
     }
     catch (error) {
