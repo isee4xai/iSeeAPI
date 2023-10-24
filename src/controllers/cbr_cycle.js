@@ -50,6 +50,8 @@ module.exports.query = async (req, res) => {
                 "intent": selected_intent.id,
                 "description": "",
                 "path": "b3projects-" + v4(),
+                "status": strategy.Status,
+                "outcome": strategy.Outcome,
                 "data": strategy.Solution
             }
             let methods = []
@@ -77,7 +79,9 @@ module.exports.query = async (req, res) => {
                 selected: false,
                 methods: methods,
                 id: "strat-" + v4(),
-                cbr_ref: strategy.Name  // For debuggining purpose
+                cbr_ref: strategy.Name,  // For debuggining purpose
+                status: strategy.Status,
+                outcome: strategy.Outcome
             }
             strategies.push(s)
         }));
