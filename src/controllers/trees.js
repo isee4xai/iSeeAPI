@@ -71,7 +71,7 @@ module.exports.methods = async (req, res) => {
     const data = await Tree.findById(req.params.id);
     if (data) {
       let methods = []
-      data.trees.forEach(t => {
+      data.data.trees.forEach(t => {
         for (var n in t.nodes) {
           if (t.nodes[n].Concept == "Explanation Method") {
             methods.push(t.nodes[n].Instance)
