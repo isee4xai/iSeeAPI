@@ -10,6 +10,7 @@ const cbrctrl = require('../controllers/cbr_cycle');
 // Capital P to support the BT Editor Code
 router.get('/Projects', treectrl.list);
 router.get('/Projects/:id', treectrl.get)
+router.get('/Projects/:id/methods', treectrl.methods);
 
 router.post('/Projects', treectrl.create);
 router.patch('/Projects/:id', treectrl.update);

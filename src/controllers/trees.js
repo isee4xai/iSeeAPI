@@ -66,6 +66,29 @@ module.exports.update = async (req, res) => {
 }
 
 
+module.exports.methods = async (req, res) => {
+  try {
+    const data = await Tree.findById(req.params.id);
+    if (data) {
+      let methods = []
+      data.trees.forEach(t => {
+        for (var n in t.nodes) {
+          if (t.nodes[n].Concept == "Explanation Method") {
+            methods.push(t.nodes[n].Instance)
+          }
+        }
+      });
+      res.json(methods);
+    } else {
+      res.status(404).json({ message: "not found" });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error });
+  }
+};
+
+
+
 
 // module.exports.delete = async (req, res) => {
 //   try {
