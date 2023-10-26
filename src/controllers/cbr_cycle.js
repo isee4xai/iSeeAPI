@@ -285,6 +285,8 @@ async function retrieve(usecase, persona, intent) {
                 "intent": intent.id,
                 "description": "",
                 "path": "b3projects-" + v4(),
+                "status": strategy.Status,
+                "outcome": strategy.Outcome,
                 "data": strategy.Solution
             }
             topTrees.push(solution_bt)
@@ -391,7 +393,7 @@ module.exports.substituteSubtree = async (req, res) => {
             data: {
                 "reuse_type": "_isee",
                 "reuse_feature": "substitute",
-                "query_tree": tree.data,
+                "query_tree": req.body.tree,
                 "query_subtree": req.body.subtreeId,
                 "query_case": usecase,
                 "ontology_props": reuse_support_props.data,
