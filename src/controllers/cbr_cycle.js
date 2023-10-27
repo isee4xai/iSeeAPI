@@ -277,6 +277,7 @@ async function retrieve(usecase, persona, intent) {
         const response = await axios(config)
         let topTrees = []
         await Promise.all(response.data.bestK.map(async (strategy) => {
+            console.log(JSON.stringify(strategy.Solution));
             const solution_bt = {
                 "name": "Tree",
                 score__: strategy.score__,
