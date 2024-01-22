@@ -1,13 +1,13 @@
 const moment = require('moment');
 
 INTENTS = {
-    "DEBUGGING": ["Is this the same outcome for similar instances?", "Is this instance a common occurrence?"],
-    "TRANSPARENCY": ["What is the impact of feature X on the outcome?", "How does feature X impact the outcome?", "What are the necessary features that guarantee this outcome?", "Why does the AI system have given outcome A?", "Which feature contributed to the current outcome?", "How does the AI system respond to feature X?", "What is the goal of the AI system?", "What is the scope of the AI system capabilities?", "What features does the AI system consider?", "What are the important features for the AI system?", "What is the impact of feature X on the AI system?", "How much evidence has been considered to build the AI system?", "How much evidence has been considered in the current outcome?", "What are the possible outcomes of the AI system?", "What features are used by the AI system?"],
-    "PERFORMANCE": ["How confident is the AI system with the outcome?", "Which instances get a similar outcome?", "Which instances get outcome A?", "What are the results when others use the AI System?", "How accurate is the AI system?", "How reliable is the AI system?", "In what situations does the AI system make errors?", "What are the limitations of the AI system?", "In what situations is the AI system likely to be correct?"],
-    "COMPLIANCY": ["How well does the AI system capture the real-world?", "Why are instances A and B given different outcomes?"],
-    "COMPREHENSIBILITY": ["How to improve the AI system performance?", "What does term X mean?", "What is the overall logic of the AI system?", "What kind of algorithm is used in the AI system?"],
-    "EFFECTIVENESS": ["What would be the outcome if features X is changed to value V?", "What other instances would get the same outcome?", "How does the AI system react if feature X is changed?", "What is the impact of the current outcome?"],
-    "ACTIONABILITY": ["What are the alternative scenarios available?", "What type of instances would get a different outcome?", "How can I change feature X to get the same outcome?", "How to get a different outcome?", "How to change the instance to get a different outcome?", "Why does the AI system have given outcome A not B?", "Which features need changed to get a different outcome?"]
+    "http://www.w3id.org/iSeeOnto/user#Debugging": ["Is this the same outcome for similar instances?", "Is this instance a common occurrence?"],
+    "http://www.w3id.org/iSeeOnto/user#Transparency": ["What is the impact of feature X on the outcome?", "How does feature X impact the outcome?", "What are the necessary features that guarantee this outcome?", "Why does the AI system have given outcome A?", "Which feature contributed to the current outcome?", "How does the AI system respond to feature X?", "What is the goal of the AI system?", "What is the scope of the AI system capabilities?", "What features does the AI system consider?", "What are the important features for the AI system?", "What is the impact of feature X on the AI system?", "How much evidence has been considered to build the AI system?", "How much evidence has been considered in the current outcome?", "What are the possible outcomes of the AI system?", "What features are used by the AI system?"],
+    "http://www.w3id.org/iSeeOnto/user#Performance": ["How confident is the AI system with the outcome?", "Which instances get a similar outcome?", "Which instances get outcome A?", "What are the results when others use the AI System?", "How accurate is the AI system?", "How reliable is the AI system?", "In what situations does the AI system make errors?", "What are the limitations of the AI system?", "In what situations is the AI system likely to be correct?"],
+    "http://www.w3id.org/iSeeOnto/user#Compliancy": ["How well does the AI system capture the real-world?", "Why are instances A and B given different outcomes?"],
+    "http://www.w3id.org/iSeeOnto/user#Comprehensibility": ["How to improve the AI system performance?", "What does term X mean?", "What is the overall logic of the AI system?", "What kind of algorithm is used in the AI system?"],
+    "http://www.w3id.org/iSeeOnto/user#Effectiveness": ["What would be the outcome if features X is changed to value V?", "What other instances would get the same outcome?", "How does the AI system react if feature X is changed?", "What is the impact of the current outcome?"],
+    "http://www.w3id.org/iSeeOnto/user#Actionability": ["What are the alternative scenarios available?", "What type of instances would get a different outcome?", "How can I change feature X to get the same outcome?", "How to get a different outcome?", "How to change the instance to get a different outcome?", "Why does the AI system have given outcome A not B?", "Which features need changed to get a different outcome?"]
 }
 
 function diffTimes(start, end) {
@@ -426,6 +426,7 @@ function caseOutcome(contents) {
         }
     }
     return {
+        "executions": personasCounts,
         "explainer_popularity": personaIntentExplainerPopularity,
         "intent_popularity": personaIntentPopularity
     }
@@ -455,6 +456,23 @@ function analytics(contents) {
     return results;
 }
 
+function filterOutcome(outcome, persona, intent) {
+    if (!outcome) {
+        return {};
+    }
+    const filteredOutcome = {};
+
+    for (const key in outcome) {
+        if (outcome[key][persona] && outcome[key][persona][intent]) {
+            filteredOutcome[key] = { [persona]: { [intent]: outcome[key][persona][intent] } };
+        }
+        else if (outcome[key][persona]) {
+            filteredOutcome[key] =  { [persona]: outcome[key][persona] } ;
+        }
+    }
+    return filteredOutcome;
+}
+
 module.exports = {
-    analytics, caseOutcome
+    analytics, caseOutcome, filterOutcome
 };
