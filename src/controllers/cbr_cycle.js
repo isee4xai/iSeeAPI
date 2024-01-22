@@ -276,7 +276,7 @@ module.exports.retain = async (req, res) => {
         const usecase = await Usecase.findById(req.params.id);
         const contents = await Interaction.find({ usecase: req.params.id, usecase_version: usecase.version }, ['user', 'createdAt', 'usecase_version', 'interaction']).populate('user').populate('interaction').sort({ createdAt: "desc" });
         const outcome = analyticsUtil.caseOutcome(contents);
-        console.log(outcome);
+        console.log(contents);
         let responses = []
         const all_mapping = await Promise.all(
             await usecase.personas.map(async function (persona) {
@@ -609,7 +609,7 @@ function generateQueryObject(usecase, persona, intent) {
 
 function generateCaseObject(usecase, persona, intent, outcome, solution) {
     const a_case = {
-        "id": v4(),
+        "id": v4().replace(/-/g, ''),
         "Name": usecase.name + "-" + persona.details.name + "-" + intent.label,
         "Version": usecase.version,
         "DatasetType": usecase.settings.dataset_type,
