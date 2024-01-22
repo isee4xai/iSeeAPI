@@ -610,6 +610,7 @@ function generateCaseObject(usecase, persona, intent, outcome, solution) {
     const a_case = {
         "id": uuidv4(),
         "Name": usecase.name + "-" + persona.details.name + "-" + intent.label,
+        "Version": usecase.version,
         "DatasetType": usecase.settings.dataset_type,
         "AITask": usecase.settings.ai_task[usecase.settings.ai_task.length - 1],
         "AIMethod": usecase.settings.ai_method[0][usecase.settings.ai_method.length - 1],
@@ -619,13 +620,16 @@ function generateCaseObject(usecase, persona, intent, outcome, solution) {
         "ExplanationTarget": "http://www.w3id.org/iSeeOnto/explainer#prediction",
         "ExplanationPresentation": "http://semanticscience.org/resource/SIO_00119",
         "UserIntent": intent.name,
-        "TechnicalFacilities": ["http://www.w3id.org/iSeeOnto/user#Touchpad"],
+        "TechnicalFacilities": ["http://www.w3id.org/iSeeOnto/user#Touchpad", 
+                                "http://www.w3id.org/iSeeOnto/user#ScreenDisplay"],
         "UserDomain": usecase.domain[0],
         "AIKnowledgeLevel": persona.details.ai_knowledge_level,
         "DomainKnowledgeLevel": persona.details.domain_knowledge_level,
-        "UserQuestionTarget": intent.questions[0].target,
+        "UserQuestion": intent.questions.map(t => t.text),
+        "UserQuestionTarget": intent.questions.map(t => t.target),
         "Solution": solution.data,
-        "Outcome": outcome
+        "Status": outcome ? "http://www.w3id.org/iSeeOnto/explanationexperience#Evaluated" : "http://www.w3id.org/iSeeOnto/explanationexperience#Not_Evaluated",
+        "Outcome": outcome, 
     };
     return a_case;
 }
