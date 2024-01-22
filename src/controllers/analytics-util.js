@@ -1,5 +1,15 @@
 const moment = require('moment');
 
+INTENTS = {
+    "DEBUGGING": ["Is this the same outcome for similar instances?", "Is this instance a common occurrence?"],
+    "TRANSPARENCY": ["What is the impact of feature X on the outcome?", "How does feature X impact the outcome?", "What are the necessary features that guarantee this outcome?", "Why does the AI system have given outcome A?", "Which feature contributed to the current outcome?", "How does the AI system respond to feature X?", "What is the goal of the AI system?", "What is the scope of the AI system capabilities?", "What features does the AI system consider?", "What are the important features for the AI system?", "What is the impact of feature X on the AI system?", "How much evidence has been considered to build the AI system?", "How much evidence has been considered in the current outcome?", "What are the possible outcomes of the AI system?", "What features are used by the AI system?"],
+    "PERFORMANCE": ["How confident is the AI system with the outcome?", "Which instances get a similar outcome?", "Which instances get outcome A?", "What are the results when others use the AI System?", "How accurate is the AI system?", "How reliable is the AI system?", "In what situations does the AI system make errors?", "What are the limitations of the AI system?", "In what situations is the AI system likely to be correct?"],
+    "COMPLIANCY": ["How well does the AI system capture the real-world?", "Why are instances A and B given different outcomes?"],
+    "COMPREHENSIBILITY": ["How to improve the AI system performance?", "What does term X mean?", "What is the overall logic of the AI system?", "What kind of algorithm is used in the AI system?"],
+    "EFFECTIVENESS": ["What would be the outcome if features X is changed to value V?", "What other instances would get the same outcome?", "How does the AI system react if feature X is changed?", "What is the impact of the current outcome?"],
+    "ACTIONABILITY": ["What are the alternative scenarios available?", "What type of instances would get a different outcome?", "How can I change feature X to get the same outcome?", "How to get a different outcome?", "How to change the instance to get a different outcome?", "Why does the AI system have given outcome A not B?", "Which features need changed to get a different outcome?"]
+}
+
 function diffTimes(start, end) {
     const timeDifferenceInSeconds = moment(end).diff(moment(start), 'milliseconds');
     return parseFloat((timeDifferenceInSeconds / 1000).toFixed(1));
@@ -40,12 +50,12 @@ function evalQuestions(content) {
         const v = gen.filter(g => g["https://www.w3id.org/iSeeOnto/BehaviourTree#pairKey"] === "variable")
             .map(g => g["https://www.w3id.org/iSeeOnto/BehaviourTree#pair_value_object"]);
 
-        if (q && q[0] && d && d[0] && v && v[0] && t && t[0]){
-            if (Array.isArray(v[0])){
+        if (q && q[0] && d && d[0] && v && v[0] && t && t[0]) {
+            if (Array.isArray(v[0])) {
                 const vals = v[0].map(_v => _v["content"]);
                 queR[q[0]] = vals;
             }
-            else if (t[0] == 'Number'){
+            else if (t[0] == 'Number') {
                 const min = gen.filter(g => g["https://www.w3id.org/iSeeOnto/BehaviourTree#pairKey"] === "question")
                     .map(g => g["https://www.w3id.org/iSeeOnto/BehaviourTree#pair_value_object"]["validators"]["min"])[0];
                 const max = gen.filter(g => g["https://www.w3id.org/iSeeOnto/BehaviourTree#pairKey"] === "question")
@@ -53,7 +63,7 @@ function evalQuestions(content) {
                 const val = v[0]["content"];
                 queR[q[0]] = [val, min, max];
             }
-            else{
+            else {
                 const vals = [v[0]["content"]];
                 queR[q[0]] = vals;
             }
@@ -258,18 +268,18 @@ function evalQuestionsList(contents) {
                 _t = queT[_q];
                 dimQC[d][_q] = dimQC[d][_q] || {};
                 dimQC[d][_q]["type"] = _t;
-                
+
                 dimQC[d][_q]["values"] = dimQC[d][_q]["values"] || {};
-                
-                if (_t === 'Number'){
+
+                if (_t === 'Number') {
                     dimQC[d][_q]["values"][_r[0]] = dimQC[d][_q]["values"][_r[0]] || 0;
                     dimQC[d][_q]["values"][_r[0]] = dimQC[d][_q]["values"][_r[0]] + 1;
                     // TODO gauge plot with normalised values
                     // dimQC[d][_q]["values"]["min"] = _r[1];
                     // dimQC[d][_q]["values"]["max"] = _r[2];
                 }
-                else{
-                    for (const i in _r){
+                else {
+                    for (const i in _r) {
                         dimQC[d][_q]["values"][_r[i]] = dimQC[d][_q]["values"][_r[i]] || 0;
                         dimQC[d][_q]["values"][_r[i]] = dimQC[d][_q]["values"][_r[i]] + 1;
                     }
@@ -330,6 +340,97 @@ function overallExperience(contents) {
     return false;
 }
 
+function caseOutcome(contents) {
+    let personasCounts = {};
+    let personaIntentCounts = {};
+    let personaIntentPopularity = {};
+    let personaIntentExplainerCounts = {};
+    let personaIntentExplainerPopularity = {};
+    for (const c in contents) {
+        const execs = contents[c].interaction.executions;
+        let persona = "";
+        let intent = "";
+        let intents = new Set();
+        let question = "";
+        let questions = {};
+        let explainer = "";
+        let explainers = {};
+        let evaluations = {};
+        const nodes = contents[c].interaction.nodes;
+        for (const e in execs) {
+            const exe = execs[e];
+            if (exe["https://www.w3id.org/iSeeOnto/BehaviourTreeExecution#enacted"]["class"] === "https://www.w3id.org/iSeeOnto/BehaviourTree#ExplainerNode") {
+                const node = nodes.find(n => n.instance === exe["https://www.w3id.org/iSeeOnto/BehaviourTreeExecution#enacted"]["instance"]);
+                if (node) {
+                    const endpoint = node["https://www.w3id.org/iSeeOnto/BehaviourTree#properties"]["https://www.w3id.org/iSeeOnto/BehaviourTree#hasDictionaryMember"]
+                        .filter(p => p["https://www.w3id.org/iSeeOnto/BehaviourTree#pairKey"] === 'endpoint')
+                        .map(p => p["https://www.w3id.org/iSeeOnto/BehaviourTree#pair_value_object"]);
+                    if (endpoint.length > 0 && intent && question) {
+                        explainer = JSON.stringify(endpoint[0]);
+                        (explainers[intent] ??= new Set()).add(explainer);
+                    }
+                }
+            }
+            else if (exe["https://www.w3id.org/iSeeOnto/BehaviourTreeExecution#enacted"]["class"] === "https://www.w3id.org/iSeeOnto/BehaviourTree#NeedQuestionNode") {
+                const dictionaryMember = exe["http://www.w3.org/ns/prov#generated"]["https://www.w3id.org/iSeeOnto/BehaviourTree#properties"]["https://www.w3id.org/iSeeOnto/BehaviourTree#hasDictionaryMember"][1];
+                if (dictionaryMember) {
+                    question = dictionaryMember["https://www.w3id.org/iSeeOnto/BehaviourTree#pair_value_object"]["content"];
+                    intent = Object.keys(INTENTS).find(key => INTENTS[key].includes(question)) || "";
+                    if (intent) {
+                        (questions[intent] ??= new Set()).add(question);
+                        intents.add(intent);
+                    }
+                }
+            }
+            else if (exe["https://www.w3id.org/iSeeOnto/BehaviourTreeExecution#enacted"]["class"] === "https://www.w3id.org/iSeeOnto/BehaviourTree#PersonaQuestionNode") {
+                const personaContent = exe["http://www.w3.org/ns/prov#generated"]["https://www.w3id.org/iSeeOnto/BehaviourTree#properties"]["https://www.w3id.org/iSeeOnto/BehaviourTree#hasDictionaryMember"][1]["https://www.w3id.org/iSeeOnto/BehaviourTree#pair_value_object"]["content"];
+                const DOMParser = new (require('xmldom').DOMParser)();
+                const parsedXML = DOMParser.parseFromString(personaContent, 'text/xml');
+                persona = parsedXML.getElementsByClassName("persona-name")[0].textContent;
+            }
+            else if (exe["https://www.w3id.org/iSeeOnto/BehaviourTreeExecution#enacted"]["class"] === "https://www.w3id.org/iSeeOnto/BehaviourTree#EvaluationQuestionNode") {
+                evaluationQ = exe["http://www.w3.org/ns/prov#generated"]["https://www.w3id.org/iSeeOnto/BehaviourTree#properties"]["https://www.w3id.org/iSeeOnto/BehaviourTree#hasDictionaryMember"][0]["https://www.w3id.org/iSeeOnto/BehaviourTree#pair_value_object"]["content"];
+                evaluationR = exe["http://www.w3.org/ns/prov#generated"]["https://www.w3id.org/iSeeOnto/BehaviourTree#properties"]["https://www.w3id.org/iSeeOnto/BehaviourTree#hasDictionaryMember"][1]["https://www.w3id.org/iSeeOnto/BehaviourTree#pair_value_object"]["content"];
+                (evaluations[evaluationQ] ??= []).push(evaluationR);
+            }
+        }
+        personasCounts[persona] = (personasCounts[persona] || 0) + 1;
+        personaIntentCounts[persona] = personaIntentCounts[persona] || {};
+        for (const i of intents) {
+            personaIntentCounts[persona][i] = (personaIntentCounts[persona][i] || 0) + 1;
+        }
+
+        for (const x in personaIntentCounts) {
+            personaIntentPopularity[x] = {};
+            for (const xx in personaIntentCounts[x]) {
+                personaIntentPopularity[x][xx] = personaIntentCounts[x][xx] * 100 / personasCounts[x];
+            }
+        }
+
+        personaIntentExplainerCounts[persona] = personaIntentExplainerCounts[persona] || {};
+        for (const i in explainers) {
+            personaIntentExplainerCounts[persona][i] = personaIntentExplainerCounts[persona][i] || {};
+            for (const e of explainers[i]) {
+                personaIntentExplainerCounts[persona][i][e] = (personaIntentExplainerCounts[persona][i][e] || 0) + 1;
+            }
+        }
+
+        for (const x in personaIntentExplainerCounts) {
+            personaIntentExplainerPopularity[x] = {};
+            for (const xx in personaIntentExplainerCounts[x]) {
+                personaIntentExplainerPopularity[x][xx] = {}
+                for (const xxx in personaIntentExplainerCounts[x][xx]) {
+                    personaIntentExplainerPopularity[x][xx][xxx] = personaIntentExplainerCounts[x][xx][xxx] * 100 / personasCounts[x]
+                }
+            }
+        }
+    }
+    return {
+        "explainer_popularity": personaIntentExplainerPopularity,
+        "intent_popularity": personaIntentPopularity
+    }
+}
+
 function analytics(contents) {
 
     const results = {}
@@ -354,7 +455,6 @@ function analytics(contents) {
     return results;
 }
 
-
 module.exports = {
-    analytics,
+    analytics, caseOutcome
 };
