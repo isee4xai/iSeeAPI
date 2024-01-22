@@ -6,6 +6,7 @@ const { isCompanyUsecase } = require('../middlewares/validateCompany');
 // Similar to update Query of an intent
 router.post('/:id/persona/:personaId/intent/:intentId', [isCompanyUsecase], cbr_cycle_ctrl.query);
 router.post('/:id/persona/:personaId/intent_default/:intentId/strategy/:strategyId', [isCompanyUsecase, incrementVersion], cbr_cycle_ctrl.setDefault);
+router.post('/:id/retain', cbr_cycle_ctrl.retain);
 
 // CBR Reuse Functions
 router.post('/:id/persona/:personaId/intent/:intentId/reuse', [isCompanyUsecase], cbr_cycle_ctrl.reuse);

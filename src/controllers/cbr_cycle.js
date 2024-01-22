@@ -2,6 +2,8 @@ const Usecase = require('../models/usecase');
 var axios = require('axios');
 const Tree = require('../models/tree');
 const { v4: uuidv4, v4 } = require("uuid");
+const Interaction = require("../models/interaction");
+const analyticsUtil = require('./analytics-util');
 
 const ONTOAPI_URL = process.env.ONTOAPI_URL;
 
@@ -59,6 +61,15 @@ module.exports.query = async (req, res) => {
                 for (var n in t.nodes) {
                     if (t.nodes[n].Concept == "Explanation Method") {
                         methods.push(t.nodes[n].Instance)
+                    }
+                    // To support the new BT structure - beta
+                    if (t.nodes[n].Concept == "User Question") {
+                        var updated_questions = ""
+                        selected_intent.questions.forEach(qTemp => {
+                            updated_questions += qTemp.text + ";"
+                        });
+                        t.nodes[n].params.Question.value = updated_questions
+                        // console.log(t.nodes[n])
                     }
                 }
             })
@@ -260,6 +271,47 @@ module.exports.setDefault = async (req, res) => {
     }
 }
 
+module.exports.retain = async (req, res) => {
+    try {
+        const usecase = await Usecase.findById(req.params.id);
+        const contents = await Interaction.find({ usecase: req.params.id, usecase_version: usecase.version }, ['user', 'createdAt', 'usecase_version', 'interaction']).populate('user').populate('interaction').sort({ createdAt: "desc" });
+        const outcome = analyticsUtil.caseOutcome(contents);
+        const cases = []
+        console.log("usecase");
+        for (let p in usecase.personas){
+            console.log("persona", p);
+            for (let i in usecase.personas[p].intents){
+                console.log("intent", i);
+                cases.append(generateCaseObject(usecase, p, i, outcome));
+            }
+        }
+        console.log("retain usecase", JSON.stringify(cases));
+
+        
+        // const request_body = {
+        //     "data":cases,
+        //     "projectId": CBRAPI_PROJECT
+        // };
+
+        // var config = {
+        //     method: 'post',
+        //     url: CBRAPI_URL + 'retain',
+        //     headers: {
+        //         'Accept': 'application/json',
+        //         'Authorization': CBRAPI_TOKEN,
+        //     },
+        //     data: request_body
+        // };
+
+        // const response = await axios(config)
+        // print(response);
+        res.status(200).json("response");
+
+    }
+    catch (error) {
+        res.status(400).json({ message: error.message })
+    }
+}
 
 async function retrieve(usecase, persona, intent) {
     try {
@@ -553,4 +605,34 @@ function generateQueryObject(usecase, persona, intent) {
         "projectId": CBRAPI_PROJECT
     }
     return request_body;
+}
+
+function generateCaseObject(usecase, p_index, i_index, outcome) {
+    const persona = usecase.personas[p_index];
+    const intent = usecase.personas[p_index].intents[i_index];
+    console.log("solution tree id", intent.strategy_selected);
+    const solution = Tree.findById(intent.strategy_selected);
+    console.log("solution", solution);
+    const a_case = { 
+        "id": uuidv4(),
+        "Name": usecase.name+"-"+persona.details.name+"-"+intent.label,
+        "DatasetType": usecase.settings.dataset_type,
+        "AITask": usecase.settings.ai_task[usecase.settings.ai_task.length-1],
+        "AIMethod": usecase.settings.ai_method[0][usecase.settings.ai_method.length-1],
+        "Portability": "http://www.w3id.org/iSeeOnto/explainer#model-agnostic",
+        "ExplainerConcurrentness": "http://www.w3id.org/iSeeOnto/explainer#post-hoc",
+        "ExplanationScope": "http://www.w3id.org/iSeeOnto/explainer#local",
+        "ExplanationTarget": "http://www.w3id.org/iSeeOnto/explainer#prediction",
+        "ExplanationPresentation": "http://semanticscience.org/resource/SIO_00119",
+        "UserIntent": intent.name,
+        "TechnicalFacilities": ["http://www.w3id.org/iSeeOnto/user#Touchpad"],
+        "UserDomain": usecase.domain[0],
+        "AIKnowledgeLevel": persona.details.ai_knowledge_level,
+        "DomainKnowledgeLevel": persona.details.domain_knowledge_level,
+        "UserQuestionTarget": intent.questions[0].target,
+        "Solution": solution.data,
+        "Outcome": outcome
+    };
+    console.log("case", a_case);
+    return a_case;
 }
