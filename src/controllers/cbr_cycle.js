@@ -277,17 +277,16 @@ module.exports.retain = async (req, res) => {
         const contents = await Interaction.find({ usecase: req.params.id, usecase_version: usecase.version }, ['user', 'createdAt', 'usecase_version', 'interaction']).populate('user').populate('interaction').sort({ createdAt: "desc" });
         const outcome = analyticsUtil.caseOutcome(contents);
         const cases = []
-        console.log("usecase");
-        for (let p in usecase.personas){
-            console.log("persona", p);
-            for (let i in usecase.personas[p].intents){
-                console.log("intent", i);
-                cases.append(generateCaseObject(usecase, p, i, outcome));
-            }
-        }
-        console.log("retain usecase", JSON.stringify(cases));
+        const all_mapping = await Promise.all(
+            await usecase.personas.map(async function (persona) {
+                await Promise.all(await persona.intents.map(async intent => {
+                    const solution = await Tree.findById(intent.strategy_selected);
+                    const caseObject = generateCaseObject(usecase, persona, intent, outcome, solution);
+                    cases.push(caseObject);
+                }));
+            }));
+        console.log("retaining cases", JSON.stringify(cases));
 
-        
         // const request_body = {
         //     "data":cases,
         //     "projectId": CBRAPI_PROJECT
@@ -432,7 +431,7 @@ module.exports.substituteSubtree = async (req, res) => {
         let selected_intent = persona.intents[intentIndex];
         selected_intent.strategy_topk = 10;
         const neighbours = await retrieve(usecase, persona, selected_intent);
-        
+
         const reuse_support_props = await axios.get(ONTOAPI_URL + 'reuse/ReuseSupport');
 
         var config = {
@@ -607,18 +606,13 @@ function generateQueryObject(usecase, persona, intent) {
     return request_body;
 }
 
-function generateCaseObject(usecase, p_index, i_index, outcome) {
-    const persona = usecase.personas[p_index];
-    const intent = usecase.personas[p_index].intents[i_index];
-    console.log("solution tree id", intent.strategy_selected);
-    const solution = Tree.findById(intent.strategy_selected);
-    console.log("solution", solution);
-    const a_case = { 
+function generateCaseObject(usecase, persona, intent, outcome, solution) {
+    const a_case = {
         "id": uuidv4(),
-        "Name": usecase.name+"-"+persona.details.name+"-"+intent.label,
+        "Name": usecase.name + "-" + persona.details.name + "-" + intent.label,
         "DatasetType": usecase.settings.dataset_type,
-        "AITask": usecase.settings.ai_task[usecase.settings.ai_task.length-1],
-        "AIMethod": usecase.settings.ai_method[0][usecase.settings.ai_method.length-1],
+        "AITask": usecase.settings.ai_task[usecase.settings.ai_task.length - 1],
+        "AIMethod": usecase.settings.ai_method[0][usecase.settings.ai_method.length - 1],
         "Portability": "http://www.w3id.org/iSeeOnto/explainer#model-agnostic",
         "ExplainerConcurrentness": "http://www.w3id.org/iSeeOnto/explainer#post-hoc",
         "ExplanationScope": "http://www.w3id.org/iSeeOnto/explainer#local",
@@ -633,6 +627,5 @@ function generateCaseObject(usecase, p_index, i_index, outcome) {
         "Solution": solution.data,
         "Outcome": outcome
     };
-    console.log("case", a_case);
     return a_case;
 }
