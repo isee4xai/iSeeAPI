@@ -283,6 +283,7 @@ module.exports.retain = async (req, res) => {
                     const outcome_filtered = analyticsUtil.filterOutcome(outcome, persona.details.name, intent.name);
                     const solution = await Tree.findById(intent.strategy_selected);
                     const caseObject = generateCaseObject(usecase, persona, intent, outcome_filtered, solution);
+                    console.log("retaining case:", JSON.stringify(caseObject));
                     const request_body = {
                         "data":caseObject,
                         "projectId": CBRAPI_PROJECT
