@@ -297,7 +297,7 @@ module.exports.retain = async (req, res) => {
             url: CBRAPI_URL + 'retain',
             headers: {
                 'Accept': 'application/json',
-                // 'Authorization': CBRAPI_TOKEN,
+                'Authorization': CBRAPI_TOKEN,
             },
             data: request_body
         };
