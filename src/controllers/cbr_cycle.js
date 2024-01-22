@@ -274,38 +274,37 @@ module.exports.setDefault = async (req, res) => {
 module.exports.retain = async (req, res) => {
     try {
         const usecase = await Usecase.findById(req.params.id);
-        const contents = await Interaction.find({ usecase: req.params.id, usecase_version: usecase.version }, ['user', 'createdAt', 'usecase_version', 'interaction']).populate('user').populate('interaction').sort({ createdAt: "desc" });
+        const contents = await Interaction.find({ usecase: req.params.id, usecase_version: "40" }, ['user', 'createdAt', 'usecase_version', 'interaction']).populate('user').populate('interaction').sort({ createdAt: "desc" });
         const outcome = analyticsUtil.caseOutcome(contents);
         const cases = []
         const all_mapping = await Promise.all(
             await usecase.personas.map(async function (persona) {
                 await Promise.all(await persona.intents.map(async intent => {
+                    const outcome_filtered = analyticsUtil.filterOutcome(outcome, persona.details.name, intent.name);
                     const solution = await Tree.findById(intent.strategy_selected);
-                    const caseObject = generateCaseObject(usecase, persona, intent, outcome, solution);
+                    const caseObject = generateCaseObject(usecase, persona, intent, outcome_filtered, solution);
                     cases.push(caseObject);
                 }));
             }));
-        console.log("retaining cases", JSON.stringify(cases));
 
-        // const request_body = {
-        //     "data":cases,
-        //     "projectId": CBRAPI_PROJECT
-        // };
+        const request_body = {
+            "data":cases,
+            "projectId": CBRAPI_PROJECT
+        };
 
-        // var config = {
-        //     method: 'post',
-        //     url: CBRAPI_URL + 'retain',
-        //     headers: {
-        //         'Accept': 'application/json',
-        //         'Authorization': CBRAPI_TOKEN,
-        //     },
-        //     data: request_body
-        // };
+        var config = {
+            method: 'post',
+            url: CBRAPI_URL + 'retain',
+            headers: {
+                'Accept': 'application/json',
+                // 'Authorization': CBRAPI_TOKEN,
+            },
+            data: request_body
+        };
 
-        // const response = await axios(config)
-        // print(response);
-        res.status(200).json("response");
-
+        const response = await axios(config)
+        console.log(response);
+        res.status(200).json(response);
     }
     catch (error) {
         res.status(400).json({ message: error.message })
