@@ -60,20 +60,21 @@ module.exports.query = async (req, res) => {
             solution_bt.data.trees.forEach(t => {
                 for (var n in t.nodes) {
                     if (t.nodes[n].Concept == "Explanation Method") {
-                        methods.push(t.nodes[n].Instance)
+                        methods.push(t.nodes[n].Instance);
                     }
                     // To support the new BT structure - beta
-                    if (t.nodes[n].Concept == "User Question") {
-                        var updated_questions = ""
-                        selected_intent.questions.forEach(qTemp => {
-                            updated_questions += qTemp.text + ";"
-                        });
-                        t.nodes[n].params.Question.value = updated_questions
-                        // console.log(t.nodes[n])
-                    }
+                    // if (t.nodes[n].Concept == "User Question") {
+                    //     var updated_questions = ""
+                    //     selected_intent.questions.forEach(qTemp => {
+                    //         updated_questions += qTemp.text + ";"
+                    //     });
+                    //     t.nodes[n].params.Question.value = updated_questions
+                    //     // console.log(t.nodes[n])
+                    // }
                 }
             })
-            let data = new Tree(solution_bt)
+            solution_bt.data = retrieve_transform(strategy, selected_intent.name, selected_intent.questions.map(t => t.text));
+            let data = new Tree(solution_bt);
             let dataToSave = await data.save();
 
             let s = {
@@ -633,4 +634,30 @@ function generateCaseObject(usecase, persona, intent, outcome, solution) {
         "Outcome": outcome, 
     };
     return a_case;
+}
+
+async function retrieve_transform(solution, intent, questions){
+    var config = {
+        method: 'post',
+        url: CBRAPI_URL + 'reuse',
+        headers: {
+            'Accept': 'application/json',
+            'Authorization': CBRAPI_TOKEN,
+        },
+        data: {
+            "reuse_type": "_isee",
+            "reuse_feature": "transform",
+            "neighbours": [solution],
+            "query_case": {
+                "UserIntent": intent,
+                "UserQuestion": questions
+            }
+        }
+    };
+
+    const reuse_response = await axios(config);
+    console.log("reuse_response");
+    console.log(JSON.stringify(reuse_response.data));
+
+    return reuse_response.data.adapted_solution;
 }
