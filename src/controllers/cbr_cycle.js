@@ -657,5 +657,6 @@ async function retrieve_transform(solution, intent, questions){
     };
 
     const reuse_response = await axios(config);
+    console.log(reuse_response.pairings);
     return reuse_response.data.adapted_solution;
 }
