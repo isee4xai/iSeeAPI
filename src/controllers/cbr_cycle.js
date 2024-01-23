@@ -73,7 +73,8 @@ module.exports.query = async (req, res) => {
                     // }
                 }
             })
-            solution_bt.data = await retrieve_transform(strategy, selected_intent.name, selected_intent.questions.map(t => t.text));
+            const new_tree = await retrieve_transform(strategy, selected_intent.name, selected_intent.questions.map(t => t.text));
+            console.log("new tree", JSON.stringify(new_tree));
             console.log(JSON.stringify(solution_bt));
             let data = new Tree(solution_bt);
             let dataToSave = await data.save();
@@ -658,6 +659,6 @@ async function retrieve_transform(solution, intent, questions){
     };
 
     const reuse_response = await axios(config);
-    console.log(reuse_response.pairings);
+    console.log("reuse pairings", JSON.stringify(reuse_response.pairings));
     return reuse_response.data.adapted_solution;
 }
