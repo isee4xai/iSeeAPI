@@ -654,7 +654,7 @@ async function retrieve_transform(solution, intent, questions){
                 "UserIntent": intent,
                 "UserQuestion": questions,
             },
-            "acceptance_threshold": 0.0
+            "acceptance_threshold": 0.1
         }
     };
 
