@@ -651,8 +651,9 @@ async function retrieve_transform(solution, intent, questions){
             "neighbours": [solution],
             "query_case": {
                 "UserIntent": intent,
-                "UserQuestion": questions
-            }
+                "UserQuestion": questions,
+            },
+            "acceptance_threshold": 0.0
         }
     };
 
