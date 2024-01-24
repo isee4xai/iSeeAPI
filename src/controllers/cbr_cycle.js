@@ -73,7 +73,7 @@ module.exports.query = async (req, res) => {
                     // }
                 }
             })
-            const new_tree = await retrieve_transform(strategy, selected_intent.name, selected_intent.questions.map(t => t.text));
+            const new_tree = await retrieve_transform(strategy.Solution, selected_intent.name, selected_intent.questions.map(t => t.text));
             console.log("new tree", JSON.stringify(new_tree));
             console.log(JSON.stringify(solution_bt));
             let data = new Tree(solution_bt);
@@ -638,6 +638,7 @@ function generateCaseObject(usecase, persona, intent, outcome, solution) {
 
     // return a_case;
     case_json = {
+        "id": "c7cb8e427dbe4b0b98d460c15e2bd6d4",
         "Name": "http://www.w3id.org/iSeeOnto/explanationexperience/TestCase/TestCaseExplanationExperience",
         "Version": 1,
         "DatasetType": "http://www.w3id.org/iSeeOnto/explainer#Multivariate_tabular",
@@ -761,7 +762,7 @@ async function retrieve_transform(solution, intent, questions){
                 "UserIntent": intent,
                 "UserQuestion": questions,
             },
-            "acceptance_threshold": 0.1
+            "acceptance_threshold": 0.01
         }
     };
 
