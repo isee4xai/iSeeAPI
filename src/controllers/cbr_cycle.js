@@ -638,7 +638,6 @@ function generateCaseObject(usecase, persona, intent, outcome, solution) {
 
     // return a_case;
     case_json = {
-        "id": "c7cb8e427dbe4b0b98d460c15e2bd6d4",
         "Name": "http://www.w3id.org/iSeeOnto/explanationexperience/TestCase/TestCaseExplanationExperience",
         "Version": 1,
         "DatasetType": "http://www.w3id.org/iSeeOnto/explainer#Multivariate_tabular",
