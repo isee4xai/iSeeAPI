@@ -304,6 +304,7 @@ module.exports.retain = async (req, res) => {
                     };
             
                     const response = await axios(config);
+                    console.log("case retain tried:", JSON.stringify(response));
                     responses.push(response);
                 }));
             }));
@@ -611,139 +612,31 @@ function generateQueryObject(usecase, persona, intent) {
 }
 
 function generateCaseObject(usecase, persona, intent, outcome, solution) {
-    // const a_case = {
-    //     "id": v4().replace(/-/g, ''),
-    //     "Name": usecase.name + "-" + persona.details.name + "-" + intent.label,
-    //     "Version": usecase.version,
-    //     "DatasetType": usecase.settings.dataset_type,
-    //     "AITask": usecase.settings.ai_task[usecase.settings.ai_task.length - 1],
-    //     "AIMethod": usecase.settings.ai_method[0][usecase.settings.ai_method.length - 1],
-    //     "Portability": "http://www.w3id.org/iSeeOnto/explainer#model-agnostic",
-    //     "ExplainerConcurrentness": "http://www.w3id.org/iSeeOnto/explainer#post-hoc",
-    //     "ExplanationScope": "http://www.w3id.org/iSeeOnto/explainer#local",
-    //     "ExplanationTarget": "http://www.w3id.org/iSeeOnto/explainer#prediction",
-    //     "ExplanationPresentation": "http://semanticscience.org/resource/SIO_00119",
-    //     "UserIntent": intent.name,
-    //     "TechnicalFacilities": ["http://www.w3id.org/iSeeOnto/user#Touchpad", 
-    //                             "http://www.w3id.org/iSeeOnto/user#ScreenDisplay"],
-    //     "UserDomain": usecase.domain[0],
-    //     "AIKnowledgeLevel": persona.details.ai_knowledge_level,
-    //     "DomainKnowledgeLevel": persona.details.domain_knowledge_level,
-    //     "UserQuestion": intent.questions.map(t => t.text),
-    //     "UserQuestionTarget": intent.questions.map(t => t.target),
-    //     "Solution": solution.data,
-    //     "Status": outcome ? "http://www.w3id.org/iSeeOnto/explanationexperience#Evaluated" : "http://www.w3id.org/iSeeOnto/explanationexperience#Not_Evaluated",
-    //     "Outcome": outcome, 
-    // };
-
-    // return a_case;
-    case_json = {
-        "id": "c7cb8e427dbe4b0b98d460c15e2bd6d4",
-        "Name": "http://www.w3id.org/iSeeOnto/explanationexperience/TestCase/TestCaseExplanationExperience",
-        "Version": 1,
-        "DatasetType": "http://www.w3id.org/iSeeOnto/explainer#Multivariate_tabular",
-        "AITask": "http://www.w3id.org/iSeeOnto/aimodel#Binary_Classification",
-        "AIMethod": "http://www.w3id.org/iSeeOnto/aimodel#Neural_Network",
+    const a_case = {
+        "id": v4().replace(/-/g, ''),
+        "Name": "http://www.w3id.org/iSeeOnto/explanationexperience#"+usecase.name.split(" ").join("")+ "" + persona.details.name + "" + intent.label,
+        "Version": usecase.version,
+        "DatasetType": usecase.settings.dataset_type,
+        "AITask": usecase.settings.ai_task[usecase.settings.ai_task.length - 1],
+        "AIMethod": usecase.settings.ai_method[0][usecase.settings.ai_method.length - 1],
         "Portability": "http://www.w3id.org/iSeeOnto/explainer#model-agnostic",
         "ExplainerConcurrentness": "http://www.w3id.org/iSeeOnto/explainer#post-hoc",
         "ExplanationScope": "http://www.w3id.org/iSeeOnto/explainer#local",
         "ExplanationTarget": "http://www.w3id.org/iSeeOnto/explainer#prediction",
-        "ExplanationPresentation": "http://semanticscience.org/resource/SIO_001194",
-        "UserIntent": "http://www.w3id.org/iSeeOnto/user#Transparency",
-        "TechnicalFacilities": [
-            "http://www.w3id.org/iSeeOnto/user#Touchpad",
-            "http://www.w3id.org/iSeeOnto/user#ScreenDisplay"
-        ],
-        "UserDomain": "http://www.w3id.org/iSeeOnto/user#Healthcare",
-        "AIKnowledgeLevel": "http://www.w3id.org/iSeeOnto/user#no_knowledge",
-        "DomainKnowledgeLevel": "http://www.w3id.org/iSeeOnto/user#no_knowledge",
-        "UserQuestion": [
-            "Which feature contributed to the current outcome?"
-        ],
-        "UserQuestionTarget": [
-            "http://www.w3id.org/iSeeOnto/aimodel#Neural_Network"
-        ],
-        "Solution": {
-            "version": "0.1.0",
-            "scope": "project",
-            "selectedTree": "33def3ec-31a8-47c1-856c-7fd724718df2",
-            "trees": [
-                {
-                    "version": "0.1.0",
-                    "scope": "tree",
-                    "id": "33def3ec-31a8-47c1-856c-7fd724718df2",
-                    "Instance": "Explanation Experience",
-                    "description": "",
-                    "root": "5112868d-f790-4665-ab3e-18a36a857363",
-                    "properties": {},
-                    "nodes": {
-                        "5112868d-f790-4665-ab3e-18a36a857363": {
-                            "id": "5112868d-f790-4665-ab3e-18a36a857363",
-                            "Concept": "Sequence",
-                            "Instance": "Sequence",
-                            "description": "",
-                            "properties": {},
-                            "display": {
-                                "x": -60,
-                                "y": 168
-                            },
-                            "firstChild": {
-                                "Id": "85b9b22e-1b0a-4a9b-81a9-83952d27271a",
-                                "Next": {
-                                    "Id": "5829d6db-5011-4ad8-846a-ab8452c6be46",
-                                    "Next": null
-                                }
-                            }
-                        },
-                        "85b9b22e-1b0a-4a9b-81a9-83952d27271a": {
-                            "id": "85b9b22e-1b0a-4a9b-81a9-83952d27271a",
-                            "Concept": "User Question",
-                            "Instance": "User Question",
-                            "description": "",
-                            "properties": {},
-                            "display": {
-                                "x": -192,
-                                "y": 324
-                            },
-                            "params": {
-                                "Question": {
-                                    "key": "Question",
-                                    "value": "Which feature contributed to the current outcome?"
-                                }
-                            }
-                        },
-                        "5829d6db-5011-4ad8-846a-ab8452c6be46": {
-                            "id": "5829d6db-5011-4ad8-846a-ab8452c6be46",
-                            "Concept": "Explanation Method",
-                            "Instance": "/Tabular/LIME",
-                            "description": "",
-                            "properties": {},
-                            "display": {
-                                "x": 60,
-                                "y": 324
-                            },
-                            "params": {}
-                        }
-                    },
-                    "display": {
-                        "camera_x": 937,
-                        "camera_y": 472,
-                        "camera_z": 1,
-                        "x": -60,
-                        "y": 0
-                    }
-                }
-            ],
-            "custom_nodes": []
-        },
-        "Status": "http://www.w3id.org/iSeeOnto/explanationexperience#Peer_reviewed",
-        "Outcome": {
-            "Popularity": {
-                "5829d6db-5011-4ad8-846a-ab8452c6be46": 1
-            }
-        }
-    }
-    return case_json;
+        "ExplanationPresentation": "http://semanticscience.org/resource/SIO_00119",
+        "UserIntent": intent.name,
+        "TechnicalFacilities": ["http://www.w3id.org/iSeeOnto/user#Touchpad", 
+                                "http://www.w3id.org/iSeeOnto/user#ScreenDisplay"],
+        "UserDomain": usecase.domain[0],
+        "AIKnowledgeLevel": persona.details.ai_knowledge_level,
+        "DomainKnowledgeLevel": persona.details.domain_knowledge_level,
+        "UserQuestion": intent.questions.map(t => t.text),
+        "UserQuestionTarget": intent.questions.map(t => t.target),
+        "Solution": solution.data,
+        "Status": outcome ? "http://www.w3id.org/iSeeOnto/explanationexperience#Evaluated" : "http://www.w3id.org/iSeeOnto/explanationexperience#Not_Evaluated",
+        "Outcome": outcome, 
+    };
+    return a_case;
 }
 
 async function retrieve_transform(solution, intent, questions){
