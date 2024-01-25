@@ -277,20 +277,15 @@ module.exports.setDefault = async (req, res) => {
 module.exports.retain = async (req, res) => {
     try {
         const usecase = await Usecase.findById(req.params.id);
-        console.log("usecase.id", usecase.id, "usecase_version", usecase.version);
         const contents = await Interaction.find({ usecase: usecase.id, usecase_version: usecase.version }, ['user', 'createdAt', 'usecase_version', 'interaction']).populate('user').populate('interaction').sort({ createdAt: "desc" });
-        console.log("contents", JSON.stringify(contents));
-        const outcome = analyticsUtil.caseOutcome(contents)
-        console.log("outcome", JSON.stringify(outcome));
+        const outcome = analyticsUtil.caseOutcome(contents);
         let responses = []
         const all_mapping = await Promise.all(
             await usecase.personas.map(async function (persona) {
                 await Promise.all(await persona.intents.map(async intent => {
                     const outcome_filtered = analyticsUtil.filterOutcome(outcome, persona.details.name, intent.name);
-                    console.log("outcome_filtered", JSON.stringify(outcome_filtered), persona.details.name, intent.name);
                     const solution = await Tree.findById(intent.strategy_selected);
                     const caseObject = generateCaseObject(usecase, persona, intent, outcome_filtered, solution);
-                    console.log("retaining case:", JSON.stringify(caseObject));
                     const request_body = {
                         "data":caseObject,
                         "projectId": CBRAPI_PROJECT
@@ -311,7 +306,7 @@ module.exports.retain = async (req, res) => {
                 }));
             }));
 
-        console.log("retain responses", responses);
+        console.log("case retain responses", responses);
         res.status(200).json(responses);
     }
     catch (error) {
