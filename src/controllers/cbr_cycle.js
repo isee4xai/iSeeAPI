@@ -75,7 +75,7 @@ module.exports.query = async (req, res) => {
             })
             // const new_tree = await retrieve_transform(strategy.Solution, selected_intent.name, selected_intent.questions.map(t => t.text));
             // console.log("new tree", JSON.stringify(new_tree));
-            console.log(JSON.stringify(solution_bt));
+            // console.log(JSON.stringify(solution_bt));
             let data = new Tree(solution_bt);
             let dataToSave = await data.save();
 
@@ -303,12 +303,11 @@ module.exports.retain = async (req, res) => {
                     };
             
                     const response = await axios(config);
-                    console.log("case retain tried:", JSON.stringify(response));
                     responses.push(response);
                 }));
             }));
 
-        console.log(responses);
+        console.log("retain responses", responses);
         res.status(200).json(responses);
     }
     catch (error) {
