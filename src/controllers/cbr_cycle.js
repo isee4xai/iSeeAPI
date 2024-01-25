@@ -73,9 +73,9 @@ module.exports.query = async (req, res) => {
                     // }
                 }
             })
-            // const new_tree = await retrieve_transform(strategy.Solution, selected_intent.name, selected_intent.questions.map(t => t.text));
-            // console.log("new tree", JSON.stringify(new_tree));
-            // console.log(JSON.stringify(solution_bt));
+            const sol_transformed = await retrieve_transform(strategy.Solution, selected_intent.name, selected_intent.questions.map(t => t.text));
+            console.log("sol_transformed", JSON.stringify(sol_transformed));
+            solution_bt.data = sol_transformed
             let data = new Tree(solution_bt);
             let dataToSave = await data.save();
 
@@ -287,10 +287,10 @@ module.exports.retain = async (req, res) => {
                     const solution = await Tree.findById(intent.strategy_selected);
                     const caseObject = generateCaseObject(usecase, persona, intent, outcome_filtered, solution);
                     const request_body = {
-                        "data":caseObject,
+                        "data": caseObject,
                         "projectId": CBRAPI_PROJECT
                     };
-            
+
                     var config = {
                         method: 'post',
                         url: CBRAPI_URL + 'retain',
@@ -300,7 +300,7 @@ module.exports.retain = async (req, res) => {
                         },
                         data: request_body
                     };
-            
+
                     const response = await axios(config);
                     responses.push(response.data);
                 }));
@@ -612,7 +612,7 @@ function generateCaseObject(usecase, persona, intent, outcome, solution) {
     let outcome_status = outcome == {} ? "http://www.w3id.org/iSeeOnto/explanationexperience#Not_Evaluated" : "http://www.w3id.org/iSeeOnto/explanationexperience#Evaluated";
     const a_case = {
         "id": v4().replace(/-/g, ''),
-        "Name": "http://www.w3id.org/iSeeOnto/explanationexperience#"+usecase.name.split(" ").join("")+ "" + persona.details.name + "" + intent.label,
+        "Name": "http://www.w3id.org/iSeeOnto/explanationexperience#" + usecase.name.split(" ").join("") + "" + persona.details.name + "" + intent.label,
         "Version": usecase.version,
         "DatasetType": usecase.settings.dataset_type,
         "AITask": usecase.settings.ai_task[usecase.settings.ai_task.length - 1],
@@ -623,8 +623,8 @@ function generateCaseObject(usecase, persona, intent, outcome, solution) {
         "ExplanationTarget": "http://www.w3id.org/iSeeOnto/explainer#prediction",
         "ExplanationPresentation": "http://semanticscience.org/resource/SIO_00119",
         "UserIntent": intent.name,
-        "TechnicalFacilities": ["http://www.w3id.org/iSeeOnto/user#Touchpad", 
-                                "http://www.w3id.org/iSeeOnto/user#ScreenDisplay"],
+        "TechnicalFacilities": ["http://www.w3id.org/iSeeOnto/user#Touchpad",
+            "http://www.w3id.org/iSeeOnto/user#ScreenDisplay"],
         "UserDomain": usecase.domain[0],
         "AIKnowledgeLevel": persona.details.ai_knowledge_level,
         "DomainKnowledgeLevel": persona.details.domain_knowledge_level,
@@ -632,32 +632,37 @@ function generateCaseObject(usecase, persona, intent, outcome, solution) {
         "UserQuestionTarget": intent.questions.map(t => t.target),
         "Solution": solution.data,
         "Status": outcome_status,
-        "Outcome": outcome, 
+        "Outcome": outcome,
     };
     return a_case;
 }
 
-async function retrieve_transform(solution, intent, questions){
-    var config = {
-        method: 'post',
-        url: CBRAPI_URL + 'reuse',
-        headers: {
-            'Accept': 'application/json',
-            'Authorization': CBRAPI_TOKEN,
-        },
-        data: {
-            "reuse_type": "_isee",
-            "reuse_feature": "transform",
-            "neighbours": [solution],
-            "query_case": {
-                "UserIntent": intent,
-                "UserQuestion": questions,
+async function retrieve_transform(solution, intent, questions) {
+    try {
+        var config = {
+            method: 'post',
+            url: CBRAPI_URL + 'reuse',
+            headers: {
+                'Accept': 'application/json',
+                'Authorization': CBRAPI_TOKEN,
             },
-            "acceptance_threshold": 0.01
-        }
-    };
+            data: {
+                "reuse_type": "_isee",
+                "reuse_feature": "transform",
+                "neighbours": [solution],
+                "query_case": {
+                    "UserIntent": intent,
+                    "UserQuestion": questions,
+                },
+                "acceptance_threshold": 0.01
+            }
+        };
 
-    const reuse_response = await axios(config);
-    console.log("reuse pairings", JSON.stringify(reuse_response.pairings));
-    return reuse_response.data.adapted_solution;
+        const reuse_response = await axios(config);
+        return reuse_response.data.adapted_solution;
+    }
+    catch (error) {
+        // in case of an error return the original tree
+        return solution
+    }
 }
