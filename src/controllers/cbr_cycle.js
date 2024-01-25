@@ -303,7 +303,7 @@ module.exports.retain = async (req, res) => {
                     };
             
                     const response = await axios(config);
-                    responses.push(response);
+                    responses.push(response.data);
                 }));
             }));
 
@@ -610,6 +610,7 @@ function generateQueryObject(usecase, persona, intent) {
 }
 
 function generateCaseObject(usecase, persona, intent, outcome, solution) {
+    let outcome_status = outcome == {} ? "http://www.w3id.org/iSeeOnto/explanationexperience#Not_Evaluated" : "http://www.w3id.org/iSeeOnto/explanationexperience#Evaluated";
     const a_case = {
         "id": v4().replace(/-/g, ''),
         "Name": "http://www.w3id.org/iSeeOnto/explanationexperience#"+usecase.name.split(" ").join("")+ "" + persona.details.name + "" + intent.label,
@@ -631,7 +632,7 @@ function generateCaseObject(usecase, persona, intent, outcome, solution) {
         "UserQuestion": intent.questions.map(t => t.text),
         "UserQuestionTarget": intent.questions.map(t => t.target),
         "Solution": solution.data,
-        "Status": outcome ? "http://www.w3id.org/iSeeOnto/explanationexperience#Evaluated" : "http://www.w3id.org/iSeeOnto/explanationexperience#Not_Evaluated",
+        "Status": outcome_status,
         "Outcome": outcome, 
     };
     return a_case;
