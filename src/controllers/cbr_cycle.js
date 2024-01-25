@@ -73,8 +73,8 @@ module.exports.query = async (req, res) => {
                     // }
                 }
             })
-            const new_tree = await retrieve_transform(strategy.Solution, selected_intent.name, selected_intent.questions.map(t => t.text));
-            console.log("new tree", JSON.stringify(new_tree));
+            // const new_tree = await retrieve_transform(strategy.Solution, selected_intent.name, selected_intent.questions.map(t => t.text));
+            // console.log("new tree", JSON.stringify(new_tree));
             console.log(JSON.stringify(solution_bt));
             let data = new Tree(solution_bt);
             let dataToSave = await data.save();
@@ -279,7 +279,6 @@ module.exports.retain = async (req, res) => {
         const usecase = await Usecase.findById(req.params.id);
         const contents = await Interaction.find({ usecase: req.params.id, usecase_version: usecase.version }, ['user', 'createdAt', 'usecase_version', 'interaction']).populate('user').populate('interaction').sort({ createdAt: "desc" });
         const outcome = analyticsUtil.caseOutcome(contents);
-        console.log(contents);
         let responses = []
         const all_mapping = await Promise.all(
             await usecase.personas.map(async function (persona) {
@@ -287,7 +286,7 @@ module.exports.retain = async (req, res) => {
                     const outcome_filtered = analyticsUtil.filterOutcome(outcome, persona.details.name, intent.name);
                     const solution = await Tree.findById(intent.strategy_selected);
                     const caseObject = generateCaseObject(usecase, persona, intent, outcome_filtered, solution);
-                    console.log("retaining test case:", JSON.stringify(caseObject));
+                    console.log("retaining case:", JSON.stringify(caseObject));
                     const request_body = {
                         "data":caseObject,
                         "projectId": CBRAPI_PROJECT
