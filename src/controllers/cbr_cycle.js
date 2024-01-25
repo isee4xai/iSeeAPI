@@ -75,7 +75,7 @@ module.exports.query = async (req, res) => {
             })
             const sol_transformed = await retrieve_transform(strategy.Solution, selected_intent.name, selected_intent.questions.map(t => t.text));
             console.log("sol_transformed", JSON.stringify(sol_transformed));
-            solution_bt.data = sol_transformed
+            // solution_bt.data = sol_transformed
             let data = new Tree(solution_bt);
             let dataToSave = await data.save();
 
@@ -638,6 +638,8 @@ function generateCaseObject(usecase, persona, intent, outcome, solution) {
 }
 
 async function retrieve_transform(solution, intent, questions) {
+    console.log("questions", questions);
+    console.log("intent", intent);
     try {
         var config = {
             method: 'post',
