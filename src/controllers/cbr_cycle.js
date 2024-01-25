@@ -43,8 +43,6 @@ module.exports.query = async (req, res) => {
         const response = await axios(config)
         let strategies = []
         await Promise.all(response.data.bestK.map(async (strategy) => {
-            // console.log()
-            // let data = new Tree(strategy.Solution)
             const solution_bt = {
                 "name": "Tree",
                 "usecase": usecase._id,
@@ -56,26 +54,19 @@ module.exports.query = async (req, res) => {
                 "outcome": strategy.Outcome,
                 "data": strategy.Solution
             }
-            let methods = []
+            // update use questions
+            const sol_transformed = await retrieve_transform(strategy, selected_intent.name, selected_intent.questions.map(t => t.text));
+            solution_bt.data = sol_transformed;
+
+            let methods = [];
             solution_bt.data.trees.forEach(t => {
                 for (var n in t.nodes) {
                     if (t.nodes[n].Concept == "Explanation Method") {
                         methods.push(t.nodes[n].Instance);
                     }
-                    // To support the new BT structure - beta
-                    // if (t.nodes[n].Concept == "User Question") {
-                    //     var updated_questions = ""
-                    //     selected_intent.questions.forEach(qTemp => {
-                    //         updated_questions += qTemp.text + ";"
-                    //     });
-                    //     t.nodes[n].params.Question.value = updated_questions
-                    //     // console.log(t.nodes[n])
-                    // }
                 }
-            })
-            const sol_transformed = await retrieve_transform(strategy, selected_intent.name, selected_intent.questions.map(t => t.text));
-            console.log("sol_transformed", JSON.stringify(sol_transformed));
-            solution_bt.data = sol_transformed;
+            });
+
             let data = new Tree(solution_bt);
             let dataToSave = await data.save();
 
@@ -177,13 +168,11 @@ module.exports.reuse = async (req, res) => {
         };
 
         const reuse_response = await axios(config)
-        console.log("reuse_response")
-        console.log(reuse_response.data)
 
         // Change Solution Strategy to the reuse retrieval
         let recommendedCase = cbr_response.data.recommended;
         recommendedCase.Solution = reuse_response.data.adapted_solution;
-        console.log("final recommended")
+        console.log("reuse recommended")
         console.log(recommendedCase)
 
         let strategies = selected_intent.strategies;
@@ -306,7 +295,7 @@ module.exports.retain = async (req, res) => {
                 }));
             }));
 
-        console.log("case retain responses", responses);
+        console.log("case retain response", responses);
         res.status(200).json(responses);
     }
     catch (error) {
@@ -458,7 +447,6 @@ module.exports.substituteSubtree = async (req, res) => {
         };
 
         const response = await axios(config);
-        console.log(response.data);
         res.status(200).json(response.data)
     }
     catch (error) {
@@ -638,8 +626,6 @@ function generateCaseObject(usecase, persona, intent, outcome, solution) {
 }
 
 async function retrieve_transform(solution, intent, questions) {
-    console.log("questions", questions);
-    console.log("intent", intent);
     try {
         var config = {
             method: 'post',
