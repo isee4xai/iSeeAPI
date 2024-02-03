@@ -44,7 +44,6 @@ module.exports.query = async (req, res) => {
         let strategies = []
     
         const applicabilities = await applicability(usecase);
-        console.log(applicabilities);
 
         await Promise.all(response.data.bestK.map(async (strategy) => {
             const solution_bt = {
@@ -665,7 +664,7 @@ async function retrieve_transform(solution, intent, questions) {
                     "UserIntent": intent,
                     "UserQuestion": questions,
                 },
-                "acceptance_threshold": 0.01
+                "acceptance_threshold": 0.00
             }
         };
 
