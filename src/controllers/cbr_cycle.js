@@ -58,14 +58,20 @@ module.exports.query = async (req, res) => {
             const sol_transformed = await retrieve_transform(strategy, selected_intent.name, selected_intent.questions.map(t => t.text));
             solution_bt.data = sol_transformed;
 
+            const applicabilities = await applicability(usecase);
+            console.log(applicabilities);
+
             let methods = [];
+            let apps = {};
             solution_bt.data.trees.forEach(t => {
                 for (var n in t.nodes) {
                     if (t.nodes[n].Concept == "Explanation Method") {
                         methods.push(t.nodes[n].Instance);
+                        apps[t.nodes[n].Instance] = applicabilities[t.nodes[n].Instance];
                     }
                 }
             });
+            console.log(methods);
 
             let data = new Tree(solution_bt);
             let dataToSave = await data.save();
@@ -83,6 +89,7 @@ module.exports.query = async (req, res) => {
                 tree: dataToSave._id,
                 selected: false,
                 methods: methods,
+                applicabilities: apps,
                 id: "strat-" + v4(),
                 cbr_ref: strategy.Name,  // For debuggining purpose
                 status: strategy.Status,
@@ -341,34 +348,18 @@ async function retrieve(usecase, persona, intent) {
 }
 
 module.exports.explainerApplicability = async (req, res) => {
-    try {
+    try{
         const usecase = await Usecase.findById(req.params.id);
-        const reuse_support_props = await axios.get(ONTOAPI_URL + 'reuse/ReuseSupport');
-        if (!usecase) {
-            res.status(404).json({ message: "Not Found! Check the usecase ID" })
+        const response = await applicability(usecase);
+        if (response.message){
+            res.status(400).json(response);
         }
-
-        var config = {
-            method: 'post',
-            url: CBRAPI_URL + 'reuse',
-            headers: {
-                'Accept': 'application/json',
-                'Authorization': CBRAPI_TOKEN,
-            },
-            data: {
-                "reuse_type": "_isee",
-                "reuse_feature": "applicability",
-                "query_case": usecase,
-                "ontology_props": reuse_support_props.data,
-                "explain": 'true'
-            }
-        };
-
-        const response = await axios(config);
-        res.status(200).json(response.data);
+        else{
+            res.status(200).json(response);
+        }
     }
     catch (error) {
-        res.status(400).json({ message: error.message });
+        res.status(400).json({ message: error.message })
     }
 }
 
@@ -623,6 +614,37 @@ function generateCaseObject(usecase, persona, intent, outcome, solution) {
         "Outcome": outcome,
     };
     return a_case;
+}
+
+async function applicability(usecase){
+    try {
+        const reuse_support_props = await axios.get(ONTOAPI_URL + 'reuse/ReuseSupport');
+        if (!usecase) {
+            return { message: "Not Found! Check the usecase ID" };
+        }
+
+        var config = {
+            method: 'post',
+            url: CBRAPI_URL + 'reuse',
+            headers: {
+                'Accept': 'application/json',
+                'Authorization': CBRAPI_TOKEN,
+            },
+            data: {
+                "reuse_type": "_isee",
+                "reuse_feature": "applicability",
+                "query_case": usecase,
+                "ontology_props": reuse_support_props.data,
+                "explain": 'true'
+            }
+        };
+
+        const response = await axios(config);
+        return response.data;
+    }
+    catch (error) {
+        return { message: error.message };
+    }
 }
 
 async function retrieve_transform(solution, intent, questions) {
