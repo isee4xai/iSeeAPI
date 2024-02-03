@@ -27,9 +27,14 @@ module.exports.getMeta = async (req, res) => {
 
 module.exports.delete = async (req, res) => {
     try {
-        console.log("[INFO] Deleting Explainer Method"+req.query.id);
-        const response = await axios.get(ONTOAPI_URL + 'explainers/delete/'+ req.query.id);
+        const config = {
+            data: req.body,
+            ISEE_ADMIN_KEY: process.env.ISEE_ADMIN_KEY
+        }
+        console.log("[INFO] Deleting Explainer Method");
+        const response = await axios.post(ONTOAPI_URL + 'explainers/delete', config)
         console.log("[INFO] Response -",response.data);
+
         res.json(response.data)
     }
     catch (error) {

@@ -9,5 +9,5 @@ const explainerctrl = require('../controllers/explainer');
 router.get('/', explainerctrl.list); // Routed to the Explainer API
 router.get('/meta', explainerctrl.getMeta); // Routed to the Explainer API
 router.post('/', explainerctrl.create);
-router.get('/delete', explainerctrl.delete);
+router.post('/delete', explainerctrl.delete);
 module.exports = router;
