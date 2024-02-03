@@ -42,6 +42,10 @@ module.exports.query = async (req, res) => {
 
         const response = await axios(config)
         let strategies = []
+    
+        const applicabilities = await applicability(usecase);
+        console.log(applicabilities);
+
         await Promise.all(response.data.bestK.map(async (strategy) => {
             const solution_bt = {
                 "name": "Tree",
@@ -57,9 +61,6 @@ module.exports.query = async (req, res) => {
             // update use questions
             const sol_transformed = await retrieve_transform(strategy, selected_intent.name, selected_intent.questions.map(t => t.text));
             solution_bt.data = sol_transformed;
-
-            const applicabilities = await applicability(usecase);
-            console.log(applicabilities);
 
             let methods = [];
             let apps = {};
