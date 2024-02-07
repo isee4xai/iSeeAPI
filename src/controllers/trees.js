@@ -3,6 +3,7 @@ const axios = require('axios');
 const Usecase = require("../models/usecase");
 const CBRAPI_URL = process.env.CBRAPI_URL;
 const ONTOAPI_URL = process.env.ONTOAPI_URL;
+const CBRAPI_TOKEN = process.env.CBRAPI_TOKEN;
 
 
 module.exports.create = async (req, res) => {
@@ -71,13 +72,10 @@ module.exports.update = async (req, res) => {
 
 
 module.exports.methods = async (req, res) => {
-  console.log(req.body.usecaseId, req.body.treeId);
   try {
     const requestData = req.body;
     const usecase = await Usecase.findById(requestData.usecaseId);
-    console.log("usecase success");
     const reuse_support_props = await axios.get(ONTOAPI_URL + 'reuse/ReuseSupport');
-    console.log("reuse_support_props success");
     if (!usecase) {
         return { message: "Use case not found! Check the usecase ID" };
     }
