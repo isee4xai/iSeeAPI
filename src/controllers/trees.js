@@ -95,9 +95,8 @@ module.exports.methods = async (req, res) => {
             "explain": 'true'
         }
     };
-    console.log("before applicabilities");
-    const applicabilities = await axios(config);
-    console.log("applicabilities", applicabilities);
+    const appResponse = await axios(config);
+    console.log("applicabilities", appResponse.data);
     const data = await Tree.findById(requestData.treeId);
     if (data) {
       let methods = []
@@ -105,8 +104,8 @@ module.exports.methods = async (req, res) => {
       data.data.trees.forEach(t => {
         for (var n in t.nodes) {
           if (t.nodes[n].Concept == "Explanation Method") {
-            methods.push(t.nodes[n].Instance)
-            apps[t.nodes[n].Instance] = applicabilities[t.nodes[n].Instance];
+            methods.push(t.nodes[n].Instance);
+            apps[t.nodes[n].Instance] = appResponse.data[t.nodes[n].Instance];
           }
         }
       });
