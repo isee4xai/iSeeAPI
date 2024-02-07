@@ -1,5 +1,6 @@
 const Tree = require("../models/tree");
 const axios = require('axios');
+const Usecase = require("../models/usecase");
 
 module.exports.create = async (req, res) => {
   const data = new Tree(req.body)
@@ -68,17 +69,44 @@ module.exports.update = async (req, res) => {
 
 module.exports.methods = async (req, res) => {
   try {
+    const requestData = req.body;
+    const usecase = await Usecase.findById(requestData.usecaseId);
+    const reuse_support_props = await axios.get(ONTOAPI_URL + 'reuse/ReuseSupport');
+    if (!usecase) {
+        return { message: "Use case not found! Check the usecase ID" };
+    }
+
+    var config = {
+        method: 'post',
+        url: CBRAPI_URL + 'reuse',
+        headers: {
+            'Accept': 'application/json',
+            'Authorization': CBRAPI_TOKEN,
+        },
+        data: {
+            "reuse_type": "_isee",
+            "reuse_feature": "applicability",
+            "query_case": usecase,
+            "ontology_props": reuse_support_props.data,
+            "explain": 'true'
+        }
+    };
+
+    const applicabilities = await axios(config);
+    
     const data = await Tree.findById(req.params.id);
     if (data) {
       let methods = []
+      let apps = {}
       data.data.trees.forEach(t => {
         for (var n in t.nodes) {
           if (t.nodes[n].Concept == "Explanation Method") {
             methods.push(t.nodes[n].Instance)
+            apps[t.nodes[n].Instance] = applicabilities[t.nodes[n].Instance];
           }
         }
       });
-      res.json(methods);
+      res.status(200).json({"methods": methods, "applicabilities":applicabilities});
     } else {
       res.status(404).json({ message: "not found" });
     }
