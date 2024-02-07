@@ -2,6 +2,8 @@ const Tree = require("../models/tree");
 const axios = require('axios');
 const Usecase = require("../models/usecase");
 const CBRAPI_URL = process.env.CBRAPI_URL;
+const ONTOAPI_URL = process.env.ONTOAPI_URL;
+
 
 module.exports.create = async (req, res) => {
   const data = new Tree(req.body)
