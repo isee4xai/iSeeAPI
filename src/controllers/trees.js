@@ -94,7 +94,7 @@ module.exports.methods = async (req, res) => {
     };
     
     const applicabilities = await axios(config);
-    
+    console.log("applicabilities", applicabilities);
     const data = await Tree.findById(req.params.id);
     if (data) {
       let methods = []
@@ -107,6 +107,8 @@ module.exports.methods = async (req, res) => {
           }
         }
       });
+      console.log("methods", methods);
+      console.log("apps", apps);
       res.status(200).json({"methods": methods, "applicabilities":applicabilities});
     } else {
       res.status(404).json({ message: "not found" });
