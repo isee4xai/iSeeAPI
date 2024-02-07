@@ -1,6 +1,7 @@
 const Tree = require("../models/tree");
 const axios = require('axios');
 const Usecase = require("../models/usecase");
+const CBRAPI_URL = process.env.CBRAPI_URL;
 
 module.exports.create = async (req, res) => {
   const data = new Tree(req.body)
@@ -72,7 +73,9 @@ module.exports.methods = async (req, res) => {
   try {
     const requestData = req.body;
     const usecase = await Usecase.findById(requestData.usecaseId);
+    console.log("usecase success");
     const reuse_support_props = await axios.get(ONTOAPI_URL + 'reuse/ReuseSupport');
+    console.log("reuse_support_props success");
     if (!usecase) {
         return { message: "Use case not found! Check the usecase ID" };
     }
@@ -92,7 +95,7 @@ module.exports.methods = async (req, res) => {
             "explain": 'true'
         }
     };
-    
+    console.log("before applicabilities");
     const applicabilities = await axios(config);
     console.log("applicabilities", applicabilities);
     const data = await Tree.findById(requestData.treeId);
