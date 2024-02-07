@@ -95,7 +95,7 @@ module.exports.methods = async (req, res) => {
     
     const applicabilities = await axios(config);
     console.log("applicabilities", applicabilities);
-    const data = await Tree.findById(req.params.id);
+    const data = await Tree.findById(requestData.treeId);
     if (data) {
       let methods = []
       let apps = {}
