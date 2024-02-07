@@ -96,22 +96,20 @@ module.exports.methods = async (req, res) => {
         }
     };
     const appResponse = await axios(config);
-    console.log("applicabilities", appResponse.data);
     const data = await Tree.findById(requestData.treeId);
     if (data) {
-      let methods = []
-      let apps = {}
+      let _methods = []
+      let _apps = {}
       data.data.trees.forEach(t => {
         for (var n in t.nodes) {
           if (t.nodes[n].Concept == "Explanation Method") {
-            methods.push(t.nodes[n].Instance);
-            apps[t.nodes[n].Instance] = appResponse.data[t.nodes[n].Instance];
+            _methods.push(t.nodes[n].Instance);
+            _apps[t.nodes[n].Instance] = appResponse.data[t.nodes[n].Instance];
           }
         }
       });
-      console.log("methods", methods);
-      console.log("apps", apps);
-      res.status(200).json({"methods": methods, "applicabilities":applicabilities});
+      const returnData = {methods: _methods, applicabilities:_apps};
+      res.status(200).json(returnData);
     } else {
       res.status(404).json({ message: "not found" });
     }
