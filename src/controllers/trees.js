@@ -68,6 +68,7 @@ module.exports.update = async (req, res) => {
 
 
 module.exports.methods = async (req, res) => {
+  console.log(req.body);
   try {
     const requestData = req.body;
     const usecase = await Usecase.findById(requestData.usecaseId);
@@ -91,7 +92,7 @@ module.exports.methods = async (req, res) => {
             "explain": 'true'
         }
     };
-
+    
     const applicabilities = await axios(config);
     
     const data = await Tree.findById(req.params.id);
