@@ -68,7 +68,7 @@ module.exports.update = async (req, res) => {
 
 
 module.exports.methods = async (req, res) => {
-  console.log(req.body);
+  console.log(req.body.usecaseId, req.body.treeId);
   try {
     const requestData = req.body;
     const usecase = await Usecase.findById(requestData.usecaseId);
