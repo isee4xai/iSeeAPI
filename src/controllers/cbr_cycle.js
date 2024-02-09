@@ -296,7 +296,7 @@ module.exports.retain = async (req, res) => {
                         },
                         data: request_body
                     };
-
+                    console.log("retaining case object ", caseObject);
                     const response = await axios(config);
                     responses.push(response.data);
                 }));
