@@ -176,6 +176,8 @@ module.exports.reuse = async (req, res) => {
 
         const reuse_response = await axios(config)
 
+        const applicabilities = await applicability(usecase);
+
         // Change Solution Strategy to the reuse retrieval
         let recommendedCase = cbr_response.data.recommended;
         recommendedCase.Solution = reuse_response.data.adapted_solution;
@@ -194,10 +196,12 @@ module.exports.reuse = async (req, res) => {
             "data": recommendedCase.Solution
         }
         let methods = []
+        let apps = {};
         solution_bt.data.trees.forEach(t => {
             for (var n in t.nodes) {
                 if (t.nodes[n].Concept == "Explanation Method") {
                     methods.push(t.nodes[n].Instance)
+                    apps[t.nodes[n].Instance] = applicabilities[t.nodes[n].Instance];
                 }
             }
         })
@@ -217,6 +221,7 @@ module.exports.reuse = async (req, res) => {
             tree: dataToSave._id,
             selected: false,
             methods: methods,
+            applicabilities: apps,
             id: "strat-" + v4(),
             cbr_ref: recommendedCase.Name  // For debuggining purpose
         }
