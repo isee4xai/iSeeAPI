@@ -61,12 +61,12 @@ module.exports.query = async (req, res) => {
             const sol_transformed = await retrieve_transform(strategy, selected_intent.name, selected_intent.questions.map(t => t.text));
             solution_bt.data = sol_transformed;
 
-            let methods = [];
+            let methods = new Set();
             let apps = {};
             solution_bt.data.trees.forEach(t => {
                 for (var n in t.nodes) {
                     if (t.nodes[n].Concept == "Explanation Method") {
-                        methods.push(t.nodes[n].Instance);
+                        methods.add(t.nodes[n].Instance);
                         apps[t.nodes[n].Instance] = applicabilities[t.nodes[n].Instance];
                     }
                 }
@@ -88,7 +88,7 @@ module.exports.query = async (req, res) => {
                 match_explanation: strategy.match_explanation,
                 tree: dataToSave._id,
                 selected: false,
-                methods: methods,
+                methods: [...methods],
                 applicabilities: apps,
                 id: "strat-" + v4(),
                 cbr_ref: strategy.Name,  // For debuggining purpose
@@ -195,12 +195,12 @@ module.exports.reuse = async (req, res) => {
             "path": "b3projects-" + v4(),
             "data": recommendedCase.Solution
         }
-        let methods = []
+        let methods = new Set();
         let apps = {};
         solution_bt.data.trees.forEach(t => {
             for (var n in t.nodes) {
                 if (t.nodes[n].Concept == "Explanation Method") {
-                    methods.push(t.nodes[n].Instance)
+                    methods.add(t.nodes[n].Instance)
                     apps[t.nodes[n].Instance] = applicabilities[t.nodes[n].Instance];
                 }
             }
@@ -220,7 +220,7 @@ module.exports.reuse = async (req, res) => {
             match_explanation: recommendedCase.match_explanation,
             tree: dataToSave._id,
             selected: false,
-            methods: methods,
+            methods: [...methods],
             applicabilities: apps,
             id: "strat-" + v4(),
             cbr_ref: recommendedCase.Name  // For debuggining purpose
