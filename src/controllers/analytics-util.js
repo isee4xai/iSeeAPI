@@ -433,27 +433,33 @@ function caseOutcome(contents) {
 }
 
 function analytics(contents) {
-
-    const results = {}
-    const pContents = personasList(contents);
-    results["interactions_per_date"] = interactionCounts(contents);
-    results["overall_experience"] = overallExperience(contents);
-    results["interactions_per_persona"] = {}
-    results["personas"] = {}
-    for (const p in pContents) {
-        const pContent = pContents[p];
-        results["interactions_per_persona"][p] = pContent.length;
-        results["personas"][p] = {};
-        results["personas"][p]["evaluations"] = evalQuestionsList(pContent);
-        results["personas"][p]["intents"] = intentQuestionsList(pContent);
-        results["personas"][p]["explainers"] = explainersList(pContent);
-        results["personas"][p]["experiences"] = userTimesList(pContent);
+    try{
+        const results = {}
+        const pContents = personasList(contents);
+        results["interactions_per_date"] = interactionCounts(contents);
+        results["overall_experience"] = overallExperience(contents);
+        results["interactions_per_persona"] = {}
+        results["personas"] = {}
+        for (const p in pContents) {
+            const pContent = pContents[p];
+            results["interactions_per_persona"][p] = pContent.length;
+            results["personas"][p] = {};
+            results["personas"][p]["evaluations"] = evalQuestionsList(pContent);
+            results["personas"][p]["intents"] = intentQuestionsList(pContent);
+            results["personas"][p]["explainers"] = explainersList(pContent);
+            results["personas"][p]["experiences"] = userTimesList(pContent);
+        }
+        results["interactions_per_persona"] = Object.entries(results["interactions_per_persona"]).map(([key, value]) => ({
+            label: key,
+            value: value,
+        }));
+        return results;
     }
-    results["interactions_per_persona"] = Object.entries(results["interactions_per_persona"]).map(([key, value]) => ({
-        label: key,
-        value: value,
-    }));
-    return results;
+    catch (error) {
+        console.log(error);
+        return { message: error };
+    }
+
 }
 
 function filterOutcome(outcome, persona, intent) {

@@ -718,7 +718,7 @@ module.exports.getExplainerResponse = async (req, res) => {
     const explainer_method = req.body.method;
     const params = req.body.params;
     const type = req.body.type;
-    console.log("getExplainerResponse - " + explainer_method);
+    // console.log("getExplainerResponse - " + explainer_method);
 
     // TODO: Check if everything needs to be sent
     const cases = await computeCaseStructure(req.params.id)
@@ -740,12 +740,12 @@ module.exports.getExplainerResponse = async (req, res) => {
     };
 
     const response_predict = await axios(config);
-    console.log(response_predict.data);
+    // console.log(response_predict.data);
 
     let output = response_predict.data;
     const meta = await axios.get(EXPLAINERAPI_URL + '/' + explainer_method)
     output.meta = meta.data
-    console.log(output)
+    // console.log(output)
     res.json(output);
   } catch (error) {
     res.status(500).json({ message: error });
@@ -758,8 +758,8 @@ module.exports.getExplainerResponseOld = async (req, res) => {
     // FOR IMAGE DATA
     // Download image as Temporary file and append to predict API
     const temp_download = __dirname + '/tmp/' + v4() + ".png";
-    console.log("Explainer Predict API")
-    console.log(req.body)
+    // console.log("Explainer Predict API")
+    // console.log(req.body)
 
     const instance_url = req.body.instance;
     await downloadFile(instance_url, temp_download);
@@ -784,7 +784,7 @@ module.exports.getExplainerResponseOld = async (req, res) => {
     };
 
     const response_predict = await axios(config);
-    console.log(response_predict.data);
+    // console.log(response_predict.data);
 
     fs.unlink(temp_download, function () {
       console.log("temp_download File was deleted")
