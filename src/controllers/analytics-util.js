@@ -157,7 +157,7 @@ function userTimes(content, nodeTypes = null) {
             case "https://www.w3id.org/iSeeOnto/BehaviourTree#TargetTypeQuestionNode":
             case "https://www.w3id.org/iSeeOnto/BehaviourTree#TargetQuestionNode":
                 const dictionaryMember = exe["http://www.w3.org/ns/prov#generated"]["https://www.w3id.org/iSeeOnto/BehaviourTree#properties"]["https://www.w3id.org/iSeeOnto/BehaviourTree#hasDictionaryMember"][1];
-                if (dictionaryMember) {
+                if (dictionaryMember && "content" in dictionaryMember["https://www.w3id.org/iSeeOnto/BehaviourTree#pair_value_object"]) { // for bosch
                     data = dictionaryMember["https://www.w3id.org/iSeeOnto/BehaviourTree#pair_value_object"]["content"];
                 }
                 break;
