@@ -279,33 +279,39 @@ module.exports.retain = async (req, res) => {
     try {
         const usecase = await Usecase.findById(req.params.id);
         const contents = await Interaction.find({ usecase: usecase.id, usecase_version: usecase.version }, ['user', 'createdAt', 'usecase_version', 'interaction']).populate('user').populate('interaction').sort({ createdAt: "desc" });
+        console.log("contents.length", contents.length);
         const outcome = analyticsUtil.caseOutcome(contents);
+        console.log("outcome.keys", outcome.keys);
         let responses = []
+        let caseObjects = []
         const all_mapping = await Promise.all(
             await usecase.personas.map(async function (persona) {
                 await Promise.all(await persona.intents.map(async intent => {
                     const outcome_filtered = analyticsUtil.filterOutcome(outcome, persona.details.name, intent.name);
                     const solution = await Tree.findById(intent.strategy_selected);
                     const caseObject = generateCaseObject(usecase, persona, intent, outcome_filtered, solution);
-                    const request_body = {
-                        "data": caseObject,
-                        "projectId": CBRAPI_PROJECT
-                    };
-
-                    var config = {
-                        method: 'post',
-                        url: CBRAPI_URL + 'retain',
-                        headers: {
-                            'Accept': 'application/json',
-                            'Authorization': CBRAPI_TOKEN,
-                        },
-                        data: request_body
-                    };
-                    console.log("retaining case object ", caseObject);
-                    const response = await axios(config);
-                    responses.push(response.data);
+                    caseObjects.push(caseObject);
                 }));
             }));
+        console.log("caseObjects.length", caseObjects.length);
+
+        // const request_body = {
+        //     "data": caseObjects,
+        //     "projectId": CBRAPI_PROJECT
+        // };
+
+        // var config = {
+        //     method: 'post',
+        //     url: CBRAPI_URL + 'retain',
+        //     headers: {
+        //         'Accept': 'application/json',
+        //         'Authorization': CBRAPI_TOKEN,
+        //     },
+        //     data: request_body
+        // };
+        // console.log("retaining case object ", caseObject);
+        // const response = await axios(config);
+        // responses.push(response.data);
 
         console.log("case retain response", responses);
         res.status(200).json(responses);
@@ -593,7 +599,7 @@ function generateQueryObject(usecase, persona, intent) {
 }
 
 function generateCaseObject(usecase, persona, intent, outcome, solution) {
-    let outcome_status = outcome == {} ? "http://www.w3id.org/iSeeOnto/explanationexperience#Not_Evaluated" : "http://www.w3id.org/iSeeOnto/explanationexperience#Evaluated";
+    let outcome_status = Object.keys(outcome).length === 0 ? "http://www.w3id.org/iSeeOnto/explanationexperience#Not_Evaluated" : "http://www.w3id.org/iSeeOnto/explanationexperience#Evaluated";
     const a_case = {
         "id": v4().replace(/-/g, ''),
         "Name": "http://www.w3id.org/iSeeOnto/explanationexperience#" + usecase.name.split(" ").join("") + "" + persona.details.name + "" + intent.label,
