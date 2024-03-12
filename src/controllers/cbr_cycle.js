@@ -277,9 +277,12 @@ module.exports.setDefault = async (req, res) => {
 
 module.exports.retain = async (req, res) => {
     try {
-        const usecase = await Usecase.findById(req.params.id);
-        console.log(usecase.id, usecase.version);
-        const contents = await Interaction.find({ usecase: usecase.id, usecase_version: usecase.version }, ['user', 'createdAt', 'usecase_version', 'interaction']).populate('user').populate('interaction').sort({ createdAt: "desc" });
+        // const usecase = await Usecase.findById(req.params.id);
+        // console.log(usecase.id, usecase.version);
+        let case_id = "64538ba5a26cf3126d04fe81";
+        let case_version = "251";
+        console.log(case_id, case_version);
+        const contents = await Interaction.find({ usecase: case_id, usecase_version: case_version }, ['user', 'createdAt', 'usecase_version', 'interaction']).populate('user').populate('interaction').sort({ createdAt: "desc" });
         console.log("contents.length", contents.length);
         const outcome = analyticsUtil.caseOutcome(contents);
         console.log("outcome.keys", outcome.keys);
