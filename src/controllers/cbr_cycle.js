@@ -276,53 +276,56 @@ module.exports.setDefault = async (req, res) => {
 }
 
 module.exports.retain = async (req, res) => {
+    const response = await retainCase(req.params.id);
+    if (response.length > 0) {
+        res.json(response)
+    } else {
+        res.status(500).json({ message: "Retain Failed!" });
+    }
+}
+
+async function retainCase(usecaseId) {
     try {
-        Usecase.findById(req.params.id).then(async (usecase) => {
-            console.log(usecase.id, usecase.version);
-            Interaction.find({ usecase: usecase.id, usecase_version: usecase.version }, ['user', 'createdAt', 'usecase_version', 'interaction']).populate('user').populate('interaction').sort({ createdAt: "desc" }).then(async (contents) => {
-                console.log("contents", contents);
-                const outcome = analyticsUtil.caseOutcome(contents);
-                console.log("outcome", outcome);
-                let responses = []
-                let caseObjects = []
-                const all_mapping = await Promise.all(
-                    await usecase.personas.map(async function (persona) {
-                        await Promise.all(await persona.intents.map(async intent => {
-                            const outcome_filtered = analyticsUtil.filterOutcome(outcome, persona.details.name, intent.name);
-                            console.log("outcome_filtered", outcome_filtered);
-                            const solution = await Tree.findById(intent.strategy_selected);
-                            const caseObject = generateCaseObject(usecase, persona, intent, outcome_filtered, solution);
-                            caseObjects.push(caseObject);
-                        }));
-                    }));
-                console.log("caseObjects.length", caseObjects.length);
-            });
-        });
+        const usecase = await Usecase.findById(usecaseId);
+        console.log("cusecase", usecase.id, usecase.version);
+        const contents = await Interaction.find({ usecase: usecase.id, usecase_version: usecase.version }, ['user', 'createdAt', 'usecase_version', 'interaction']).populate('user').populate('interaction').sort({ createdAt: "desc" });
+        console.log("contents.length", contents.length);
+        const outcome = analyticsUtil.caseOutcome(contents);
+        console.log("outcome", outcome);
+        let responses = []
+        const all_mapping = await Promise.all(
+            await usecase.personas.map(async function (persona) {
+                await Promise.all(await persona.intents.map(async intent => {
+                    const outcome_filtered = analyticsUtil.filterOutcome(outcome, persona.details.name, intent.name);
+                    console.log("outcome_filtered", outcome_filtered);
+                    const solution = await Tree.findById(intent.strategy_selected);
+                    const caseObject = generateCaseObject(usecase, persona, intent, outcome_filtered, solution);
+                    const request_body = {
+                        "data": caseObject,
+                        "projectId": CBRAPI_PROJECT
+                    };
 
-
-        // const request_body = {
-        //     "data": caseObjects,
-        //     "projectId": CBRAPI_PROJECT
-        // };
-
-        // var config = {
-        //     method: 'post',
-        //     url: CBRAPI_URL + 'retain',
-        //     headers: {
-        //         'Accept': 'application/json',
-        //         'Authorization': CBRAPI_TOKEN,
-        //     },
-        //     data: request_body
-        // };
-        // console.log("retaining case object ", caseObject);
-        // const response = await axios(config);
-        // responses.push(response.data);
+                    var config = {
+                        method: 'post',
+                        url: CBRAPI_URL + 'retain',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Authorization': CBRAPI_TOKEN,
+                        },
+                        data: request_body
+                    };
+                    console.log("retaining case object ", caseObject);
+                    const response = await axios(config);
+                    responses.push(response.data);
+                }));
+            }));
 
         console.log("case retain response", responses);
-        res.status(200).json(responses);
+        return responses;
     }
     catch (error) {
-        res.status(400).json({ message: error.message })
+        console.log(error);
+        return false;
     }
 }
 
