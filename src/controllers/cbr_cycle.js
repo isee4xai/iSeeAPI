@@ -42,7 +42,7 @@ module.exports.query = async (req, res) => {
 
         const response = await axios(config)
         let strategies = []
-    
+
         const applicabilities = await applicability(usecase);
 
         await Promise.all(response.data.bestK.map(async (strategy) => {
@@ -277,27 +277,26 @@ module.exports.setDefault = async (req, res) => {
 
 module.exports.retain = async (req, res) => {
     try {
-        // const usecase = await Usecase.findById(req.params.id);
-        // console.log(usecase.id, usecase.version);
-        let case_id = "64538ba5a26cf3126d04fe81";
-        let case_version = "251";
-        console.log(case_id, case_version);
-        const contents = await Interaction.find({ usecase: case_id, usecase_version: case_version }, ['user', 'createdAt', 'usecase_version', 'interaction']).populate('user').populate('interaction').sort({ createdAt: "desc" });
-        console.log("contents.length", contents.length);
-        const outcome = analyticsUtil.caseOutcome(contents);
-        console.log("outcome.keys", outcome.keys);
-        let responses = []
-        let caseObjects = []
-        const all_mapping = await Promise.all(
-            await usecase.personas.map(async function (persona) {
-                await Promise.all(await persona.intents.map(async intent => {
-                    const outcome_filtered = analyticsUtil.filterOutcome(outcome, persona.details.name, intent.name);
-                    const solution = await Tree.findById(intent.strategy_selected);
-                    const caseObject = generateCaseObject(usecase, persona, intent, outcome_filtered, solution);
-                    caseObjects.push(caseObject);
+        Usecase.findById(req.params.id).then(async (usecase) => {
+            console.log(usecase.id, usecase.version);
+            const contents = await Interaction.find({ usecase: usecase.id, usecase_version: usecase.version }, ['user', 'createdAt', 'usecase_version', 'interaction']).populate('user').populate('interaction').sort({ createdAt: "desc" });
+            console.log("contents.length", contents.length);
+            const outcome = analyticsUtil.caseOutcome(contents);
+            console.log("outcome.keys", Object.keys(outcome));
+            let responses = []
+            let caseObjects = []
+            const all_mapping = await Promise.all(
+                await usecase.personas.map(async function (persona) {
+                    await Promise.all(await persona.intents.map(async intent => {
+                        const outcome_filtered = analyticsUtil.filterOutcome(outcome, persona.details.name, intent.name);
+                        const solution = await Tree.findById(intent.strategy_selected);
+                        const caseObject = generateCaseObject(usecase, persona, intent, outcome_filtered, solution);
+                        caseObjects.push(caseObject);
+                    }));
                 }));
-            }));
-        console.log("caseObjects.length", caseObjects.length);
+            console.log("caseObjects.length", caseObjects.length);
+        });
+
 
         // const request_body = {
         //     "data": caseObjects,
@@ -363,13 +362,13 @@ async function retrieve(usecase, persona, intent) {
 }
 
 module.exports.explainerApplicability = async (req, res) => {
-    try{
+    try {
         const usecase = await Usecase.findById(req.params.id);
         const response = await applicability(usecase);
-        if (response.message){
+        if (response.message) {
             res.status(400).json(response);
         }
-        else{
+        else {
             res.status(200).json(response);
         }
     }
@@ -631,7 +630,7 @@ function generateCaseObject(usecase, persona, intent, outcome, solution) {
     return a_case;
 }
 
-async function applicability(usecase){
+async function applicability(usecase) {
     try {
         const reuse_support_props = await axios.get(ONTOAPI_URL + 'reuse/ReuseSupport');
         if (!usecase) {
