@@ -279,23 +279,24 @@ module.exports.retain = async (req, res) => {
     try {
         Usecase.findById(req.params.id).then(async (usecase) => {
             console.log(usecase.id, usecase.version);
-            const contents = await Interaction.find({ usecase: usecase.id, usecase_version: usecase.version }, ['user', 'createdAt', 'usecase_version', 'interaction']).populate('user').populate('interaction').sort({ createdAt: "desc" });
-            console.log("contents", contents);
-            const outcome = analyticsUtil.caseOutcome(contents);
-            console.log("outcome", outcome);
-            let responses = []
-            let caseObjects = []
-            const all_mapping = await Promise.all(
-                await usecase.personas.map(async function (persona) {
-                    await Promise.all(await persona.intents.map(async intent => {
-                        const outcome_filtered = analyticsUtil.filterOutcome(outcome, persona.details.name, intent.name);
-                        console.log("outcome_filtered", outcome_filtered);
-                        const solution = await Tree.findById(intent.strategy_selected);
-                        const caseObject = generateCaseObject(usecase, persona, intent, outcome_filtered, solution);
-                        caseObjects.push(caseObject);
+            Interaction.find({ usecase: usecase.id, usecase_version: usecase.version }, ['user', 'createdAt', 'usecase_version', 'interaction']).populate('user').populate('interaction').sort({ createdAt: "desc" }).then(async (contents) => {
+                console.log("contents", contents);
+                const outcome = analyticsUtil.caseOutcome(contents);
+                console.log("outcome", outcome);
+                let responses = []
+                let caseObjects = []
+                const all_mapping = await Promise.all(
+                    await usecase.personas.map(async function (persona) {
+                        await Promise.all(await persona.intents.map(async intent => {
+                            const outcome_filtered = analyticsUtil.filterOutcome(outcome, persona.details.name, intent.name);
+                            console.log("outcome_filtered", outcome_filtered);
+                            const solution = await Tree.findById(intent.strategy_selected);
+                            const caseObject = generateCaseObject(usecase, persona, intent, outcome_filtered, solution);
+                            caseObjects.push(caseObject);
+                        }));
                     }));
-                }));
-            console.log("caseObjects.length", caseObjects.length);
+                console.log("caseObjects.length", caseObjects.length);
+            });
         });
 
 
